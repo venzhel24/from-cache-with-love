@@ -1,510 +1,357 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
-    <title>PHP 8.4 Overview</title>
+    <title>Кеширование в веб-разработке</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="shower/themes/rndphp/styles/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
     <script>hljs.highlightAll();</script>
+    <style>
+        .image-container { display: flex; flex-wrap: wrap; gap: 20px; margin: 20px 0; }
+        .image-container img { width: 45%; max-width: 300px; border: 1px solid #ddd; }
+        .note { color: #666; font-style: italic; margin-top: 10px; font-size: 14px; }
+    </style>
 </head>
 <body class="shower list">
 
 <section class="slide preview">
     <div class="lines"></div>
     <div class="stripes"></div>
-    <h1>PHP 8.4 Обзор</h1>
+    <h1>Кеширование в веб-разработке</h1>
     <p>Кочетов Даниил</p>
 </section>
 
 <section class="slide">
-    <h2>О чем поговорим?</h2>
+    <h2>АНОНС</h2>
     <ul>
-        <li class="next">Новый функционал</li>
-        <li class="next">Обратная совместимость</li>
-        <li class="next">Переход</li>
-        <li class="next">Производительность</li>
+        <li>Что такое кеширование</li>
+        <li>Цепочка кешей в HTTP-запросе</li>
+        <li>Bitrix, Symfony, Next.js</li>
+        <li>Стратегии, инвалидация</li>
+        <li>Ошибки, мониторинг</li>
     </ul>
 </section>
 
 <section class="slide">
-    <h2 class="shout shrink">Новый функционал</h2>
-</section>
-
-<section class="slide">
-    <h2>Функциональный стиль вызова <code>new</code></h2>
-    <div class="image-container">
-    <pre><code class="language-php">
-        // Старый стиль (с дополнительными скобками):
-        $area = (new Rectangle(5, 10))->calculateArea();
-
-        // Новый функциональный стиль в PHP 8.4:
-        $area = new Rectangle(5, 10)->calculateArea();
-    </code></pre>
-
-        <img class="next" src="pictures/eleph.jpg" alt="1" />
-    </div>
-</section>
-
-<section class="slide">
-    <h2>Хуки свойств</h2>
-    <div class="image-container">
-    <pre style="font-size: 10px;"><code>
-                class Person
-                {
-                    public string $fullName {
-                        get => $this->firstName . ' ' . $this->lastName;
-                    }
-
-                    public string $firstName {
-                        set => mb_ucfirst(strtolower($value));
-                    }
-
-                    public string $lastName {
-                        set {
-                            if (strlen($value) < 2) {
-                                throw new \InvalidArgumentException('Слишком короткая фамилия');
-                            }
-
-                            $this->lastName = $value;
-                        }
-                    }
-                }
-    </code></pre>
-
-        <pre><code>
-            $p = new Person();
-            $p->firstName = 'пётр';
-            echo $p->firstName; // Выведет "Пётр"
-
-            $p->lastName = 'Петров';
-            echo $p->fullName; // Выведет "Пётр Петров"
-    </code></pre>
-    </div>
-</section>
-
-<section class="slide">
-    <h2>Ассиметричный модификатор доступа</h2>
-    <pre><code>
-                class Software
-                {
-                    public private(set) string $version = '8.4';
-                }
-
-                $software = new Software();
-
-                echo $software->version;  // Выведет "8.4"
-
-                // $software->version = '8.5';  // Ошибка: нельзя изменять значение
-    </code></pre>
-</section>
-
-<section class="slide">
-    <h2>Комбинирование хуков и асимметричного <br>модификатора доступа</h2>
-    <pre style="font-size: 11px;"><code>
-                class Person
-                {
-                    private(set) string $name
-                    {
-                        get => ucfirst(strtolower(trim($this->name)));
-                    }
-
-                    public function __construct(string $name)
-                    {
-                        $this->name = $name;
-                    }
-                }
-
-                $tmp = new Person('ДЕНИС');
-                echo $tmp->name; // Выведет: Денис
-    </code></pre>
-</section>
-
-<section class="slide">
-    <h2>Ассиметричный модификатор доступа</h2>
-    <ul>
-        <li><b>public private(set)</b> // Можно</li>
-        <li><b>public protected(set)</b> // Можно</li>
-        <li><b>protected private(set)</b> // Можно</li>
-        <li><b>protected public(set)</b> // Нельзя</li>
-        <li><b>private public(set)</b> // Нельзя</li>
-        <li><b>private protected(set)</b> // Нельзя</li>
-    </ul>
-</section>
-
-<section class="slide">
-    <h2 class="shout shrink">Функции для работы с массивами</h2>
-</section>
-
-<section class="slide">
-    <h2>array_find()</h2>
-    <p>Функция <code>array_find()</code> находит первый элемент массива, который удовлетворяет условию.</p>
-    <pre><code>
-            $numbers = [1, 2, 3, 4, 5];
-            $found = array_find($numbers, fn($n) => $n > 3);
-            echo $found; // 4
-    </code></pre>
-</section>
-
-<section class="slide">
-    <h2>array_find_key()</h2>
-    <p>Функция <code>array_find_key()</code> находит первый ключ массива, который удовлетворяет условию.</p>
-    <pre><code>
-            $numbers = ['a' => 1, 'b' => 2, 'c' => 3];
-            $key = array_find_key($numbers, fn($n) => $n === 2);
-            echo $key; // 'b'
-    </code></pre>
-</section>
-
-<section class="slide">
-    <h2>array_find(), return null</h2>
-    <p><code>array_find()</code>, <code>array_find_key()</code> .Что если не нашли элемент</p>
-    <pre><code>
-            $numbers = [1, 2, 3, 4, 5];
-            $found = array_find($numbers, fn($n) => $n > 5);
-            echo $found; // null
-    </code></pre>
-</section>
-
-<section class="slide">
-    <h2>array_any()</h2>
-    <p>Функция <code>array_any()</code> проверяет, существует ли хотя бы один элемент, который удовлетворяет условию.</p>
-    <pre><code>
-            $numbers = [1, 2, 3, 4, 5];
-            $exists = array_any($numbers, fn($n) => $n > 3);
-            echo $exists; // True
-    </code></pre>
-</section>
-
-<section class="slide">
-    <h2>array_all()</h2>
-    <p>Функция <code>array_all()</code> проверяет, удовлетворяют ли все элементы массива условию.</p>
-    <pre><code>
-            $numbers = [1, 2, 3, 4, 5];
-            $all = array_all($numbers, fn($n) => $n > 0);
-            echo $all; // True
-    </code></pre>
-</section>
-
-
-<section class="slide">
-    <h2>Атрибут <code>#[Deprecated]</code></h2>
-    <pre style="font-size: 12px;"><code>
-            #[\Deprecated(message: "use safe_replacement() instead", since: "1.5")]
-            function unsafe_function()
-            {
-               echo "This is unsafe", PHP_EOL;
-            }
-
-            unsafe_function();
-    </code></pre>
-    <pre class="next" style="font-size: 12px;">Результат:<code>
-            Deprecated: Function unsafe_function() is deprecated since 1.5,
-            use safe_replacement() instead in example.php on line 9
-            This is unsafe
-    </code></pre>
-</section>
-
-<section class="slide">
-    <h2>Атрибут <code>#[Deprecated]</code> использование</h2>
-    <pre><code>
-            class MyClass {
-                public string $version = '8.4';
-
-                #[Deprecated("Use NEW_CONST instead")]
-                public const OLD_CONST = 1;
-
-                #[Deprecated("Use newMethod() instead")]
-                public function oldMethod() {
-                    echo "This is an old method.\n";
-                }
-            }
-  </code></pre>
-</section>
-
-<section class="slide">
-    <h2>ext-Dom, Как было</h2>
-    <pre style="font-size: 12px"><code>
-        $dom = new DOMDocument();
-        $dom->loadHTML(
-            <<<'HTML'
-                &lt;main&gt;
-                    &lt;article&gt;PHP 8.4 is a feature-rich release!&lt;/article&gt;
-                    &lt;article class="featured"&gt;PHP 8.4 adds new DOM classes that are spec-compliant, keeping the old ones for.&lt;/article&gt;
-                &lt;/main&gt;
-            HTML,
-            LIBXML_NOERROR,
-        );
-
-        $xpath = new DOMXPath($dom);
-        $node = $xpath->query(".//main/article[not(following-sibling::*)]")[0];
-        $classes = explode(" ", $node->className); // Simplified
-        var_dump(in_array("featured", $classes)); // bool(true)
-</code></pre>
-</section>
-
-<section class="slide">
-    <h2>ext-Dom, новые возможности</h2>
-    <pre style="font-size: 12px"><code>
-            $dom = Dom\HTMLDocument::createFromString(
-            &emsp;&lt;&lt;&lt;'HTML'
-                &lt;main&gt;
-                    &lt;article&gt;PHP 8.4 is a feature-rich release!&lt;/article&gt;
-                    &lt;article class="featured"&gt;PHP 8.4 adds new DOM classes that are spec-compliant, keeping the old ones for.&lt;/article&gt;
-                &lt;/main&gt;
-                HTML,
-            LIBXML_NOERROR,
-            );
-
-        $node = $dom-&gt;querySelector('main &gt; article:last-child');
-        var_dump($node-&gt;classList-&gt;contains("featured")); // bool(true)
-</code></pre>
-</section>
-
-<section class="slide">
-    <h2>Объектно-ориентированный API для BCMath</h2>
-    <div class="image-container">
-    <pre style="font-size: 14px"><code>
-            $num1 = '0.12345';
-            $num2 = 2;
-            $result = bcadd($num1, $num2, 5);
-
-            echo $result; // '2.12345'
-            var_dump(bccomp($num1, $num2) > 0); // false
-</code></pre>
-
-    <pre style="font-size: 14px"><code>
-            use BcMath\Number;
-
-            $num1 = new Number('0.12345');
-            $num2 = new Number('2');
-            $result = $num1 + $num2;
-
-            echo $result; // '2.12345'
-            var_dump($num1 > $num2); // false
-</code></pre>
-    </div>
-</section>
-
-<section class="slide">
-    <h2>Ленивая инициализация объектов</h2>
-    <div class="image-container">
-        <pre style="font-size: 14px"><code>
-        class MyClass {
-            public function __construct(private int $value) {
-                echo "MyClass создан с value = {$this->value}\n";
-            }
-
-            public function getValue(): int {
-                return $this->value;
-            }
-        }
-
-        $initializer = static function (MyClass $proxy): MyClass {
-            return new MyClass(123);
-        };
-        </code></pre>
-            <pre style="font-size: 13px;"><code>
-            $reflector = new ReflectionClass(MyClass::class);
-            $object = $reflector->newLazyProxy($initializer);
-
-            // При обращении к объекту происходит инициализация
-            echo "Value: " . $object->getValue() . "\n";
-            </code></pre>
-    </div>
-</section>
-
-<section class="slide">
-    <h2><code>request_parse_body</code></h2>
-    <pre><code>
-                [$_POST, $_FILES] = request_parse_body([
-                    'post_max_size' => '10M',
-                    'upload_max_filesize' => '10M',
-                ]);
-        </code></pre>
-    <p>RequestParseBodyException<br>
-        ValueError
-    </p>
-</section>
-
-<section class="slide">
-    <h2><code>grapheme_str_split</code></h2>
-    <div style="display: flex; justify-content: space-between;">
-        <pre><code>
-        $string = "👨‍👩‍👧‍👦";
-
-        $array = grapheme_str_split($string);
-        print_r($array);
-
-        $array2 = grapheme_str_split($string, 3);
-        print_r($array2);
-        </code></pre>
-        <div class="next" style="word-wrap: break-word; flex: 1; margin-left: 20px;">
-            <pre style="font-size: 13px;"><code>
-                        Array
-                        (
-                            [0] => 👨‍
-                            [1] => 👩‍
-                            [2] => 👧‍
-                            [3] => 👦
-                        )
-                        Array
-                        (
-                            [0] => 👨‍👩‍👧‍
-                            [1] => 👦
-                        )
-            </code></pre>
-        </div>
-    </div>
-</section>
-
-<section class="slide">
-    <h2 class="shout shrink" style="font-size: 72px">Изменения, которые ломают обратную совместимость</h2>
-</section>
-
-<section class="slide">
-    <h2><code>exit</code> и <code>die</code>: новое поведение</h2>
-    <pre><code>
-        declare(strict_types=1);
-        exit(3.14);
-    </code></pre>
-
-    <p class="next">PHP Fatal error:  Uncaught TypeError: exit(): Argument #1 ($status) must be of type string|int, float given</p>
-</section>
-
-<section class="slide">
-    <h2>Типы параметров, неявно допускающие значение null объявлены устаревшими</h2>
-    <pre><code>
-            function greet(string $name = null): void
-            {
-                echo "Hello, " . ($name ?? "Guest") . "!\n";
-            }
-
-            greet(); // Deprecated: Implicitly allowing null for parameter $name
-    </code></pre>
-</section>
-
-<section class="slide">
-    <h2>Типы параметров, неявно допускающие значение null объявлены устаревшими</h2>
-    <pre><code>
-            function greet(?string $name = null): void
-            {
-                echo "Hello, " . ($name ?? "Guest") . "!\n";
-            }
-
-            greet(); // Hello, Guest!
-    </code></pre>
-</section>
-
-<section class="slide">
-    <h2>Обновление round</h2>
-    <pre><code>
-            round(1.1, precision: 0, mode: INCORRECT_MODE); // ValueError
-            round(1.1, precision: 0, mode: PHP_ROUND_CEILING); // 2
-            round(1.1, precision: 1, mode: PHP_ROUND_FLOOR); // -1
-            round(1.9, precision: 0, mode: PHP_ROUND_TOWARD_ZERO); // 1
-            round(1.9, precision: 0, mode: PHP_ROUND_AWAY_FROM_ZERO); // 2
-    </code></pre>
-</section>
-
-<section class="slide">
-    <h2>Обновления <code>opcache</code> и <code>JIT</code></h2>
-    <span>По умолчанию до 8.4:</span><br>
-    <code>
-        opcache.jit_buffer_size=0<br>
-        opcache.jit=tracing
-    </code>
-    <br>
-    <br>
-    <span>По умолчанию в 8.4:</span><br>
-    <code>
-        opcache.jit_buffer_size=64M<br>
-        opcache.jit=disable
-    </code>
-</section>
-
-<section class="slide">
-    <h2>Сравнение производительности</h2>
-    <div class="image-container">
-        <img src="pictures/2.png" alt="1" />
-        <img src="pictures/3.png" alt="2" />
-        <img src="pictures/1.png" alt="3" />
-        <img src="pictures/4.png" alt="4" />
-    </div>
-</section>
-
-<section class="slide">
-    <h2>Переход на 8.4, Ректор</h2>
-    <pre><code>
-            $rectorConfig->rules([
-                ExplicitNullableParamTypeRector::class,
-                RoundingModeEnumRector::class
-            ]);
-    </code>
+    <h2>Что такое кеширование</h2>
+    <pre>
+Запрос → кеш → источник → вычисления → сохранение в кеш → ответ
     </pre>
-    <code>vendor/bin/rector process</code>
 </section>
 
 <section class="slide">
-    <h2>Выводы</h2>
-    <table class="table-slide">
-        <thead>
-        <tr>
-            <th>Branch</th>
-            <th colspan="2">Initial Release</th>
-            <th colspan="2">Active Support Until</th>
-            <th colspan="2">Security Support Until</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr>
-            <td><a>8.1</a></td>
-            <td>25 Nov 2021</td>
-            <td><em>3 years, 1 month ago</em></td>
-            <td>25 Nov 2023</td>
-            <td><em>1 year, 1 month ago</em></td>
-            <td>31 Dec 2025</td>
-            <td><em>in 11 months</em></td>
-        </tr>
-        <tr>
-            <td><a>8.2</a></td>
-            <td>8 Dec 2022</td>
-            <td><em>2 years, 1 month ago</em></td>
-            <td>31 Dec 2024</td>
-            <td><em>20 days ago</em></td>
-            <td>31 Dec 2026</td>
-            <td><em>in 1 year, 11 months</em></td>
-        </tr>
-        <tr>
-            <td><a>8.3</a></td>
-            <td>23 Nov 2023</td>
-            <td><em>1 year, 1 month ago</em></td>
-            <td>31 Dec 2025</td>
-            <td><em>in 11 months</em></td>
-            <td>31 Dec 2027</td>
-            <td><em>in 2 years, 11 months</em></td>
-        </tr>
-        <tr>
-            <td><a>8.4</a></td>
-            <td>21 Nov 2024</td>
-            <td><em>1 month ago</em></td>
-            <td>31 Dec 2026</td>
-            <td><em>in 1 year, 11 months</em></td>
-            <td>31 Dec 2028</td>
-            <td><em>in 3 years, 11 months</em></td>
-        </tr>
-        <tr>
-            <td><a>8.5</a></td>
-            <td>20 Nov 2025</td>
-            <td><em>in 9 months</em></td>
-            <td>31 Dec 2027</td>
-            <td><em>in 2 year, 11 months</em></td>
-            <td>31 Dec 2029</td>
-            <td><em>in 4 years, 11 months</em></td>
-        </tr>
-        </tbody>
-    </table>
+    <h2>Ключевые термины</h2>
+    <ul>
+        <li>Hit rate / miss rate</li>
+        <li>TTL (Time To Live)</li>
+        <li>Тёплый / холодный кеш</li>
+        <li>Stale data</li>
+        <li>Invalidation</li>
+    </ul>
+</section>
+
+<section class="slide">
+    <h2>Цепочка кешей (HTTP Flow)</h2>
+    <pre>
+        Пользователь → DNS-кеш → CDN → Браузер (HTTP, localStorage, SW) →
+        → Reverse Proxy (Nginx, Varnish) → Веб-сервер → Приложение (Bitrix, Symfony, Next.js) →
+        → Distributed Cache (Redis, Memcached) → База данных
+    </pre>
+</section>
+
+<section class="slide">
+    <h2 class="shout shrink">Уровни кеширования</h2>
+</section>
+
+<section class="slide">
+    <h2>CPU / ОС / Диск</h2>
+    <ul>
+        <li>L1/L2/L3 кеш процессора</li>
+        <li>Page cache, buffer cache</li>
+        <li>Дисковый кеш (SSD/HDD)</li>
+    </ul>
+</section>
+
+<section class="slide">
+    <h2>DNS-кеш</h2>
+    <ul>
+        <li>Кеш IP-адресов</li>
+        <li>Локальный и облачный резолвер</li>
+        <li>Ускорение разрешения имён</li>
+    </ul>
+</section>
+
+<section class="slide">
+    <h2>CDN</h2>
+    <ul>
+        <li>Кеширование статики (JS, CSS, images)</li>
+        <li>Cloudflare, AWS CloudFront, Яндекс.CDN</li>
+        <li>Снижение RTT, защита от DDoS</li>
+    </ul>
+</section>
+
+<section class="slide">
+    <h2>Reverse Proxy</h2>
+    <ul>
+        <li>Кеширование HTTP-ответов</li>
+        <li>Nginx, Varnish</li>
+        <li>Разгрузка бэкенда</li>
+    </ul>
+</section>
+
+<section class="slide">
+    <h2>Браузерный кеш</h2>
+    <ul>
+        <li>HTTP-кеш (Cache-Control, ETag)</li>
+        <li>localStorage, sessionStorage, IndexedDB</li>
+        <li>Service Workers (PWA)</li>
+    </ul>
+</section>
+
+<section class="slide">
+    <h2 class="shout shrink">Кеш на уровне приложения</h2>
+</section>
+
+<section class="slide">
+    <h2>Bitrix: типы кеша</h2>
+    <ul>
+        <li>Управляемый кеш (Managed Cache)</li>
+        <li>Неуправляемый кеш (CACHE_TIME)</li>
+        <li>Тегированный кеш (Tagged Cache)</li>
+        <li>Кеш шаблонов, настроек, ORM</li>
+        <li>Внешний кеш (Redis, Memcached)</li>
+    </ul>
+</section>
+
+<section class="slide">
+    <h2>Bitrix: Управляемый кеш</h2>
+    <pre>
+        <code class="language-php">
+        $cache = Cache::createInstance();
+
+        if ($cache->initCache(3600, 'catalog_data', '/catalog/')) {
+            $data = $cache->getVars();
+        } else {
+            $data = getCatalogData();
+            $cache->startDataCache();
+            $cache->endDataCache($data);
+        }
+        </code>
+    </pre>
+    <p>Ручное управление кешем</p>
+</section>
+
+<section class="slide">
+    <h2>Bitrix: Тегированный кеш</h2>
+    <pre><code class="language-php">
+        $taggedCache = new TaggedCache();
+        $taggedCache->startTagCache('/catalog/');
+        $taggedCache->registerTag('iblock_id_5');
+        // ... кеширование
+        $taggedCache->endTagCache();
+
+        // Инвалидация:
+        $taggedCache->clearByTag('iblock_id_5');
+    </code></pre>
+    <p>Инвалидация по тегам</p>
+</section>
+
+<section class="slide">
+    <h2>Symfony: типы кеша</h2>
+    <ul>
+        <li>Кеш конфигов, роутов, сервисов</li>
+        <li>HTTP-кеш (Cache-Control, ETag)</li>
+        <li>Doctrine L2 Cache (query, result)</li>
+        <li>Tag-aware Cache</li>
+        <li>Adapters: Redis, Memcached</li>
+    </ul>
+</section>
+
+<section class="slide">
+    <h2>Symfony: Tag-aware Cache</h2>
+    <pre><code class="language-php">
+        $cache->get('products_list', function (ItemInterface $item) {
+            $item->tag(['products', 'category_5']);
+            return $this->fetchProducts();
+        });
+
+        // Инвалидация:
+        $cache->invalidateTags(['category_5']);
+    </code></pre>
+    <p>Кеш с тегами</p>
+</section>
+
+<section class="slide">
+    <h2>Next.js: типы кеша</h2>
+    <ul>
+        <li>SSG — статическая генерация</li>
+        <li>ISR — инкрементальная регенерация</li>
+        <li>Edge Functions (на CDN)</li>
+        <li>API Routes + Cache-Control</li>
+        <li>Клиентский кеш: React Query, SWR</li>
+    </ul>
+</section>
+
+<section class="slide">
+    <h2>Next.js: ISR</h2>
+    <pre><code class="language-js">
+        export async function getStaticProps() {
+          const posts = await fetchPosts();
+          return {
+            props: { posts },
+            revalidate: 60 // обновление каждую минуту
+          };
+        }
+    </code></pre>
+    <p>Incremental Static Regeneration</p>
+</section>
+
+<section class="slide">
+    <h2>Next.js: Edge</h2>
+    <pre><code class="language-js">
+        export const runtime = 'edge';
+
+        export async function GET() {
+          return new Response('Hello from Edge', {
+            headers: { 'Cache-Control': 's-maxage=60' }
+          });
+        }
+    </code></pre>
+    <p>Выполнение на CDN</p>
+</section>
+
+<section class="slide">
+    <h2 class="shout shrink">Стратегии кеширования</h2>
+</section>
+
+<section class="slide">
+    <h2>Cache-aside (Lazy Loading)</h2>
+    <ul>
+        <li>Приложение проверяет кеш</li>
+        <li>При промахе — читает из источника</li>
+        <li>Сохраняет в кеш</li>
+    </ul>
+    <!-- [Схема: приложение → кеш → БД] -->
+</section>
+
+<section class="slide">
+    <h2>Read-through</h2>
+    <ul>
+        <li>Приложение запрашивает данные</li>
+        <li>Кеш сам читает из источника при промахе</li>
+        <li>Кеш кэширует ответ</li>
+    </ul>
+    <!-- [Схема: приложение → кеш (→ БД)] -->
+</section>
+
+<section class="slide">
+    <h2>Write-through</h2>
+    <ul>
+        <li>Запись одновременно в кеш и источник</li>
+        <li>Гарантия согласованности</li>
+        <li>Высокая нагрузка на запись</li>
+    </ul>
+    <!-- [Схема: приложение → кеш → БД] -->
+</section>
+
+<section class="slide">
+    <h2>Write-behind (Write-back)</h2>
+    <ul>
+        <li>Запись только в кеш</li>
+        <li>Асинхронная запись в источник</li>
+        <li>Риск потери данных</li>
+    </ul>
+    <!-- [Схема: приложение → кеш → (async) → БД] -->
+</section>
+
+<section class="slide">
+    <h2>Refresh-ahead (Prefetch)</h2>
+    <ul>
+        <li>Обновление кеша до истечения TTL</li>
+        <li>Снижение latency</li>
+        <li>Требует прогнозирования</li>
+    </ul>
+    <!-- [Схема: кеш → (предзагрузка) → источник] -->
+</section>
+
+<section class="slide">
+    <h2>Cache warming</h2>
+    <ul>
+        <li>Предзаполнение кеша при старте</li>
+        <li>Для критичных данных</li>
+        <li>Снижает нагрузку на холодный старт</li>
+    </ul>
+    <!-- [Схема: инициализация → кеш ← данные] -->
+</section>
+
+<section class="slide">
+    <h2 class="shout shrink">Инвалидация</h2>
+</section>
+
+<section class="slide">
+    <h2>Инвалидация</h2>
+    <ul>
+        <li>По времени (TTL)</li>
+        <li>По событию (data change)</li>
+        <li>Tag-based (зависимости)</li>
+        <li>Ручная (manual)</li>
+    </ul>
+</section>
+
+<section class="slide">
+    <h2>Типовые ошибки</h2>
+    <ul>
+        <li>Cache stampede</li>
+        <li>Hot keys</li>
+        <li>Thundering herd</li>
+        <li>Memory leak</li>
+        <li>Stale data</li>
+    </ul>
+</section>
+
+<section class="slide">
+    <h2 class="shout shrink">Мониторинг и безопасность</h2>
+</section>
+
+<section class="slide">
+    <h2>Метрики</h2>
+    <ul>
+        <li>Hit/miss rate</li>
+        <li>Latency, throughput</li>
+        <li>Memory usage, eviction rate</li>
+    </ul>
+</section>
+
+<section class="slide">
+    <h2>Безопасность</h2>
+    <ul>
+        <li>Изоляция кеша (multi-tenant)</li>
+        <li>Cache poisoning</li>
+        <li>Минимум PII в кеше</li>
+        <li>Шифрование чувствительных данных</li>
+    </ul>
+</section>
+
+<section class="slide">
+    <h2>Когда НЕ кешировать</h2>
+    <ul>
+        <li>Часто меняющиеся данные</li>
+        <li>Персонализированный контент</li>
+        <li>Критичные по актуальности</li>
+        <li>Редко запрашиваемые данные</li>
+    </ul>
+</section>
+
+<section class="slide">
+    <h2>Современные тренды</h2>
+    <ul>
+        <li>Edge Computing (Cloudflare Workers)</li>
+        <li>ML-driven кеширование</li>
+        <li>Serverless кеширование</li>
+        <li>Адаптивные TTL</li>
+    </ul>
 </section>
 
 <section class="slide">
@@ -514,7 +361,5 @@
 <div class="progress"></div>
 
 <script src="shower/shower.min.js"></script>
-<!-- Copyright © 3000 Yours Truly, Famous Inc. -->
-
 </body>
 </html>
