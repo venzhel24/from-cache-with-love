@@ -8,7 +8,7 @@
 }
 
 .preview::before {
-	background-image: url("../../../../../pictures/logophp-white.svg");
+	background-image: url("../../../../../pictures/logo-wp.png");
 }
 
 .preview::after {

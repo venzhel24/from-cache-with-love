@@ -28,9 +28,11 @@
     <ul>
         <li>Что такое кеширование</li>
         <li>Цепочка кешей в HTTP-запросе</li>
-        <li>Bitrix, Symfony, Next.js</li>
+        <li>Кеш вBitrix, Symfony</li>
+        <li>Кеш в Next.js</li>
         <li>Стратегии, инвалидация</li>
         <li>Ошибки, мониторинг</li>
+        <li>Современные тренды</li>
     </ul>
 </section>
 
@@ -38,7 +40,12 @@
     <h2>Что такое кеширование</h2>
     <pre>
 Запрос → кеш → источник → вычисления → сохранение в кеш → ответ
+        // Добавить схему
     </pre>
+</section>
+
+<section class="slide">
+    <h2>Тут пример</h2>
 </section>
 
 <section class="slide">
@@ -55,9 +62,12 @@
 <section class="slide">
     <h2>Цепочка кешей (HTTP Flow)</h2>
     <pre>
-        Пользователь → DNS-кеш → CDN → Браузер (HTTP, localStorage, SW) →
-        → Reverse Proxy (Nginx, Varnish) → Веб-сервер → Приложение (Bitrix, Symfony, Next.js) →
-        → Distributed Cache (Redis, Memcached) → База данных
+    Пользователь → DNS-кеш → CDN → Браузер (HTTP, localStorage, SW) →
+    → Reverse Proxy (Nginx, Varnish) → Веб-сервер → Приложение (Bitrix, Symfony, Next.js) →
+    → Distributed Cache (Redis, Memcached) → База данных
+    </pre>
+    <pre>
+        // Добавить схему
     </pre>
 </section>
 
@@ -93,20 +103,20 @@
 </section>
 
 <section class="slide">
-    <h2>Reverse Proxy</h2>
-    <ul>
-        <li>Кеширование HTTP-ответов</li>
-        <li>Nginx, Varnish</li>
-        <li>Разгрузка бэкенда</li>
-    </ul>
-</section>
-
-<section class="slide">
     <h2>Браузерный кеш</h2>
     <ul>
         <li>HTTP-кеш (Cache-Control, ETag)</li>
         <li>localStorage, sessionStorage, IndexedDB</li>
         <li>Service Workers (PWA)</li>
+    </ul>
+</section>
+
+<section class="slide">
+    <h2>Reverse Proxy</h2>
+    <ul>
+        <li>Кеширование HTTP-ответов</li>
+        <li>Nginx, Varnish</li>
+        <li>Разгрузка бэкенда</li>
     </ul>
 </section>
 
@@ -120,6 +130,7 @@
         <li>Управляемый кеш (Managed Cache)</li>
         <li>Неуправляемый кеш (CACHE_TIME)</li>
         <li>Тегированный кеш (Tagged Cache)</li>
+        <li>Композитный кеш</li>
         <li>Кеш шаблонов, настроек, ORM</li>
         <li>Внешний кеш (Redis, Memcached)</li>
     </ul>
@@ -129,33 +140,32 @@
     <h2>Bitrix: Управляемый кеш</h2>
     <pre>
         <code class="language-php">
-        $cache = Cache::createInstance();
+            $cache = \Bitrix\Main\Data\Cache::createInstance();
 
-        if ($cache->initCache(3600, 'catalog_data', '/catalog/')) {
-            $data = $cache->getVars();
-        } else {
-            $data = getCatalogData();
-            $cache->startDataCache();
-            $cache->endDataCache($data);
-        }
+            if ($cache->initCache(3600, 'catalog_data', '/catalog/')) {
+                $data = $cache->getVars();
+            } elseif ($cache->startDataCache()) {
+                $data = getCatalogData();
+                $cache->endDataCache($data);
+            }
         </code>
     </pre>
-    <p>Ручное управление кешем</p>
 </section>
 
 <section class="slide">
     <h2>Bitrix: Тегированный кеш</h2>
     <pre><code class="language-php">
-        $taggedCache = new TaggedCache();
-        $taggedCache->startTagCache('/catalog/');
-        $taggedCache->registerTag('iblock_id_5');
-        // ... кеширование
-        $taggedCache->endTagCache();
+        $cache = \Bitrix\Main\Data\Cache::createInstance();
+        if ($cache->startDataCache(3600, 'catalog_items_5', '/catalog/', ['iblock_id_5'])) {
+            $items = \CIBlockElement::GetList([], ['IBLOCK_ID' => 5]);
+            $cache->endDataCache($items);
+        } else {
+            $items = $cache->getVars();
+        }
 
-        // Инвалидация:
-        $taggedCache->clearByTag('iblock_id_5');
+        // Инвалидация
+        \Bitrix\Main\Data\TaggedCache::clearByTag('iblock_id_5');
     </code></pre>
-    <p>Инвалидация по тегам</p>
 </section>
 
 <section class="slide">
