@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <title>Кеширование в веб-разработке</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="shower/themes/rndphp/styles/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+    <style>
+        .image-container { display: flex; flex-wrap: wrap; gap: 20px; margin: 20px 0; }
+        .image-container img { width: 45%; max-width: 300px; border: 1px solid #ddd; }
+        .note { color: #666; font-style: italic; margin-top: 10px; font-size: 14px; }
+    </style>
+</head>
+<body class="shower list">
+
+<section class="slide preview">
+    <div class="lines"></div>
+    <div class="stripes"></div>
+    <h1>Кеширование в веб-разработке</h1>
+    <p>Кочетов Даниил</p>
+</section>
+
+<section class="slide">
+    <h2>АНОНС</h2>
+    <ul>
+        <li>Кеширование — что это</li>
+        <li>Уровни кеширования</li>
+        <li>Bitrix, Symfony, Next.js</li>
+        <li>Стратегии, инвалидация</li>
+        <li>Ошибки, мониторинг</li>
+    </ul>
+</section>
+
+<section class="slide">
+    <h2>Что это такое</h2>
+    <pre>
+        [Схема: запрос → кеш → источник → ответ]
+    </pre>
+</section>
+
+<section class="slide">
+    <h2>Термины</h2>
+    <ul>
+        <li>Hit rate, miss rate</li>
+        <li>TTL (time to live)</li>
+        <li>Тёплый / холодный кеш</li>
+        <li>Stale (устаревшие данные)</li>
+        <li>Invalidation</li>
+    </ul>
+</section>
+
+<section class="slide">
+    <h2>Цепочка кешей (HTTP Flow)</h2>
+    <pre>
+        Пользователь
+            ↓
+        DNS-кеш
+            ↓
+        CDN
+            ↓
+        Браузер (HTTP, localStorage, SW)
+            ↓
+        Reverse Proxy (Nginx, Varnish)
+            ↓
+        Веб-сервер
+            ↓
+        Приложение (Bitrix, Symfony, Next.js)
+            ↓
+        Distributed Cache (Redis, Memcached)
+            ↓
+        База данных (InnoDB, PostgreSQL)
+    </pre>
+</section>
+
+<section class="slide">
+    <h2 class="shout shrink">Уровни кеширования</h2>
+</section>
+
+<section class="slide">
+    <h2>CPU / ОС / Диск</h2>
+    <ul>
+        <li>L1/L2/L3 кеш</li>
+        <li>Page cache, buffer cache</li>
+        <li>Задачи: ускорение операций</li>
+    </ul>
+</section>
+
+<section class="slide">
+    <h2>DNS-кеш</h2>
+    <ul>
+        <li>Кеш IP-адресов</li>
+        <li>Resolver: локальный, облачный</li>
+        <li>Задача: ускорение DNS</li>
+    </ul>
+</section>
+
+<section class="slide">
+    <h2>CDN</h2>
+    <ul>
+        <li>Статика: JS, CSS, images</li>
+        <li>Примеры: Cloudflare, CloudFront, Яндекс.CDN</li>
+        <li>Edge — сокращение RTT</li>
+    </ul>
+</section>
+
+<section class="slide">
+    <h2>Reverse Proxy</h2>
+    <ul>
+        <li>HTTP-ответы целиком</li>
+        <li>Nginx, Varnish</li>
+        <li>Задача: разгрузка бэкенда</li>
+    </ul>
+</section>
+
+<section class="slide">
+    <h2>Браузерный кеш</h2>
+    <ul>
+        <li>HTTP Cache-Control, ETag</li>
+        <li>localStorage, sessionStorage</li>
+        <li>Service Workers (PWA)</li>
+    </ul>
+</section>
+
+<section class="slide">
+    <h2 class="shout shrink">Кеш на уровне приложения</h2>
+</section>
+
+<section class="slide">
+    <h2>Bitrix: типы кеша</h2>
+    <ul>
+        <li>Управляемый кеш (managed)</li>
+        <li>Неуправляемый кеш (unmanaged)</li>
+        <li>Тегированный кеш (tagged)</li>
+        <li>Кеш компонентов, шаблонов</li>
+        <li>Кеш ORM, API</li>
+    </ul>
+</section>
+
+<section class="slide">
+    <h2>Symfony: типы кеша</h2>
+    <ul>
+        <li>Кеш роутов, конфигов, сервисов</li>
+        <li>HTTP-кеш (Etag, Vary)</li>
+        <li>Doctrine: L2 кеш (tagged)</li>
+        <li>Adapters: Redis, Memcached</li>
+        <li>Кеш контейнера (DI)</li>
+    </ul>
+</section>
+
+<section class="slide">
+    <h2>Next.js: типы кеша</h2>
+    <ul>
+        <li>SSG (Static Site Generation)</li>
+        <li>ISR (Incremental Static Regeneration)</li>
+        <li>Edge Cache (на CDN)</li>
+        <li>Revalidate tags (tagged)</li>
+        <li>Client-side: React Query, SWR</li>
+    </ul>
+</section>
+
+<section class="slide">
+    <h2 class="shout shrink">Стратегии кеширования</h2>
+</section>
+
+<section class="slide">
+    <h2>Cache-aside (Lazy Loading)</h2>
+    <ul>
+        <li>Приложение проверяет кеш</li>
+        <li>При промахе — читает из источника</li>
+        <li>Записывает в кеш</li>
+    </ul>
+    <!-- [Схема: приложение → кеш → БД] -->
+</section>
+
+<section class="slide">
+    <h2>Read-through</h2>
+    <ul>
+        <li>Приложение запрашивает данные</li>
+        <li>Кеш сам читает из источника при промахе</li>
+        <li>Кеш кэширует ответ</li>
+    </ul>
+    <!-- [Схема: приложение → кеш (→ БД)] -->
+</section>
+
+<section class="slide">
+    <h2>Write-through</h2>
+    <ul>
+        <li>Запись одновременно в кеш и источник</li>
+        <li>Гарантия согласованности</li>
+        <li>Высокая нагрузка на запись</li>
+    </ul>
+    <!-- [Схема: приложение → кеш → БД] -->
+</section>
+
+<section class="slide">
+    <h2>Write-behind (Write-back)</h2>
+    <ul>
+        <li>Запись только в кеш</li>
+        <li>Асинхронная запись в источник</li>
+        <li>Риск потери данных</li>
+    </ul>
+    <!-- [Схема: приложение → кеш → (async) → БД] -->
+</section>
+
+<section class="slide">
+    <h2>Refresh-ahead (Prefetch)</h2>
+    <ul>
+        <li>Обновление кеша до истечения TTL</li>
+        <li>Снижение latency</li>
+        <li>Требует прогнозирования</li>
+    </ul>
+    <!-- [Схема: кеш → (предзагрузка) → источник] -->
+</section>
+
+<section class="slide">
+    <h2>Cache warming</h2>
+    <ul>
+        <li>Предзаполнение кеша при старте</li>
+        <li>Для критичных данных</li>
+        <li>Снижает нагрузку на холодный старт</li>
+    </ul>
+    <!-- [Схема: инициализация → кеш ← данные] -->
+</section>
+
+<section class="slide">
+    <h2 class="shout shrink">Инвалидация</h2>
+</section>
+
+<section class="slide">
+    <h2>Инвалидация</h2>
+    <ul>
+        <li>По времени (TTL)</li>
+        <li>По событию (data change)</li>
+        <li>Tag-based (зависимости)</li>
+        <li>Ручная (manual)</li>
+    </ul>
+</section>
+
+<section class="slide">
+    <h2>Типовые Ошибки</h2>
+    <ul>
+        <li>Cache stampede</li>
+        <li>Hot keys</li>
+        <li>Thundering herd</li>
+        <li>Memory leak</li>
+        <li>Stale data</li>
+    </ul>
+</section>
+
+<section class="slide">
+    <h2 class="shout shrink">Мониторинг и безопасность</h2>
+</section>
+
+<section class="slide">
+    <h2>Метрики</h2>
+    <ul>
+        <li>Hit/miss rate</li>
+        <li>Latency, throughput</li>
+        <li>Memory usage, eviction rate</li>
+    </ul>
+</section>
+
+<section class="slide">
+    <h2>Безопасность</h2>
+    <ul>
+        <li>Isolation (multi-tenant)</li>
+        <li>Cache poisoning</li>
+        <li>PII минимум</li>
+        <li>Encryption</li>
+    </ul>
+</section>
+
+<section class="slide">
+    <h2>Когда НЕ кешировать</h2>
+    <ul>
+        <li>Часто меняющиеся данные</li>
+        <li>Персонализированный контент</li>
+        <li>Критичные по актуальности</li>
+        <li>Редко запрашиваемые</li>
+    </ul>
+</section>
+
+<section class="slide">
+    <h2>Тренды</h2>
+    <ul>
+        <li>Edge computing</li>
+        <li>ML-driven кеширование</li>
+        <li>Serverless</li>
+        <li>Адаптивные TTL</li>
+    </ul>
+</section>
+
+<section class="slide">
+    <h2 class="shout shrink">Вопросы?</h2>
+</section>
+
+<div class="progress"></div>
+
+<script src="shower/shower.min.js"></script>
+</body>
+</html>
