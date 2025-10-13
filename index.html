@@ -13,6 +13,8 @@
         .image-container img { width: 45%; max-width: 300px; border: 1px solid #ddd; }
         .note { color: #666; font-style: italic; margin-top: 10px; font-size: 14px; }
         .cache-clear { background: #f8f8f8; padding: 10px; border-left: 4px solid #007acc; margin: 10px 0; font-size: 16px; }
+        .diagnostic { background: #e8f4f8; padding: 10px; border-left: 4px solid #0066cc; margin: 10px 0; font-size: 14px; }
+        .codex { display: flex; justify-content: center; background: #e8f4f8; border-left: 4px solid #0066cc; margin: 10px 0; font-size: 14px; }
     </style>
 </head>
 <body class="shower list">
@@ -31,6 +33,7 @@
         <li>Цепочка кешей в HTTP-запросе</li>
         <li>Кеш в Bitrix, Symfony</li>
         <li>Кеш в Next.js</li>
+        <li>Идентификация работы кеша</li>
         <li>Стратегии</li>
         <li>Ошибки</li>
         <li>Современные тренды</li>
@@ -43,20 +46,19 @@
 </section>
 
 <section class="slide">
-    <h2>Добро админ</h2>
+    <h2>Админ панель добро.рф</h2>
     <img src="pictures/admin-dobro.png" width="80%" class="place" style="padding-top: 40px;"/>
 </section>
 
 <section class="slide">
-    <h2>Добро админ с кешем</h2>
+    <h2>Админ панель с кешем</h2>
     <img src="pictures/dobro-admin-cache.png" width="50%" class="place" style="padding-top: 40px;"/>
 </section>
 
 <section class="slide">
-    <h2>Добро админ до 1967 года</h2>
+    <h2>Админ панель без кеша</h2>
     <img src="pictures/dobro-admin-fail.jpg" width="70%" class="place" style="padding-top: 40px;"/>
 </section>
-
 
 <section class="slide">
     <h2>Ключевые термины</h2>
@@ -80,13 +82,8 @@
 </section>
 
 <section class="slide">
-    <h2>Цепочка кешей (HTTP Flow)</h2>
-<!--    <pre>-->
-<!--    Пользователь → DNS-кеш → CDN → Браузер (HTTP, localStorage, SW) →-->
-<!--    → Reverse Proxy (Nginx, Varnish) → Веб-сервер → Приложение (Bitrix, Symfony, Next.js) →-->
-<!--    → Distributed Cache (Redis, Memcached) → База данных-->
-<!--    </pre>-->
-    <img src="pictures/http-flow.png" width="50%" class="place"/>
+    <h2>Цепочка кешей (DNS)</h2>
+    <img src="pictures/level-dns.png" width="25%" class="place"/>
 </section>
 
 <section class="slide">
@@ -105,18 +102,8 @@
 </section>
 
 <section class="slide">
-    <h2>CDN</h2>
-    <ul>
-        <li>Кеширование статики (JS, CSS, images)</li>
-        <li>Cloudflare, AWS CloudFront, Яндекс.CDN</li>
-        <li>Снижение RTT, защита от DDoS</li>
-    </ul>
-    <div class="cache-clear">
-        <strong>Очистка CDN-кеша:</strong><br>
-        • В панели управления: "Purge Cache"<br>
-        • API: <code>curl -X POST "https://api.cloudflare.com/client/v4/zones/{zone_id}/purge_cache"</code><br>
-        • Cache-busting: <code>style.css?v=1.2.3</code>
-    </div>
+    <h2>Цепочка кешей (Browser)</h2>
+    <img src="pictures/level-browser.png" width="20%" class="place"/>
 </section>
 
 <section class="slide">
@@ -136,6 +123,36 @@
 </section>
 
 <section class="slide">
+    <h2>Цепочка кешей (Local proxy)</h2>
+    <img src="pictures/level-corp.png" width="18%" class="place"/>
+</section>
+
+<section class="slide">
+    <h2>Цепочка кешей (CDN)</h2>
+    <img src="pictures/level-CDN.png" width="40%" class="place"/>
+</section>
+
+<section class="slide">
+    <h2>CDN</h2>
+    <ul>
+        <li>Кеширование статики (JS, CSS, images)</li>
+        <li>Cloudflare, AWS CloudFront, Яндекс.CDN</li>
+        <li>Снижение RTT, защита от DDoS</li>
+    </ul>
+    <div class="cache-clear">
+        <strong>Очистка CDN-кеша:</strong><br>
+        • В панели управления: "Purge Cache"<br>
+        • API: <code>curl -X POST "https://api.cloudflare.com/client/v4/zones/{zone_id}/purge_cache"</code><br>
+        • Cache-busting: <code>style.css?v=1.2.3</code>
+    </div>
+</section>
+
+<section class="slide">
+    <h2>Цепочка кешей (Reverse-Proxy)</h2>
+    <img src="pictures/level-reverse.png" width="40%" class="place"/>
+</section>
+
+<section class="slide">
     <h2>Reverse Proxy</h2>
     <ul>
         <li>Кеширование HTTP-ответов</li>
@@ -151,6 +168,11 @@
 </section>
 
 <section class="slide">
+    <h2>Цепочка кешей (Веб сервер)</h2>
+    <img src="pictures/level-wserver.png" width="55%" class="place"/>
+</section>
+
+<section class="slide">
     <h2>Nginx: типы кеширования</h2>
     <ul>
         <li><strong>Кеширование статики</strong> — CSS, JS, изображения, шрифты</li>
@@ -162,14 +184,12 @@
 
 <section class="slide">
     <h2>Nginx: кеширование статики</h2>
-    <pre><code class="language-nginx">
-location ~* \.(jpg|jpeg|png|gif|ico|css|js|woff2?|ttf|svg)$ {
+    <pre><code class="language-nginx">location ~* \.(jpg|jpeg|png|gif|ico|css|js|woff2?|ttf|svg)$ {
     expires 30d;
     add_header Cache-Control "public, max-age=2592000";
     add_header Vary Accept-Encoding;
 }
     </code></pre>
-
     <div class="cache-clear">
         <strong>Очистка:</strong> Нет серверного кеша, только браузерный.<br>
         Решение: cache-busting (style.css?v=1.2.3)
@@ -178,8 +198,7 @@ location ~* \.(jpg|jpeg|png|gif|ico|css|js|woff2?|ttf|svg)$ {
 
 <section class="slide">
     <h2>Nginx: Proxy Cache</h2>
-    <pre><code class="language-nginx" style="font-size: 14px">
-        # Настройка зоны кеширования
+    <pre><code class="language-nginx" style="font-size: 14px">        # Настройка зоны кеширования
         proxy_cache_path /data/nginx/cache
             levels=1:2
             keys_zone=my_cache:100m
@@ -207,95 +226,185 @@ location ~* \.(jpg|jpeg|png|gif|ico|css|js|woff2?|ttf|svg)$ {
 </section>
 
 <section class="slide">
-    <h2 class="shout shrink">Кеш на уровне приложения</h2>
+    <h2>Цепочка кешей (Приложение)</h2>
+    <img  src="pictures/level-app.png" width="55%" class="place"/>
 </section>
 
 <section class="slide">
     <h2>Bitrix: типы кеша</h2>
     <ul>
-        <li>Управляемый кеш (Managed Cache), Тегированный кеш (Tagged Cache)</li>
-        <li>Неуправляемый кеш (CACHE_TIME)</li>
-        <li>Композитный кеш</li>
-        <li>Кеш шаблонов, настроек, ORM</li>
+        <li><strong>Управляемый кеш</strong> (Managed Cache)</li>
+        <li><strong>Тегированный кеш</strong> (Tagged Cache)</li>
+        <li><strong>Неуправляемый кеш</strong> (Simple Cache)</li>
+        <li><strong>Композитный кеш</strong> (HTML Cache)</li>
+        <li><strong>Кеш компонентов</strong></li>
+        <li><strong>Кеш шаблонов</strong></li>
+        <li><strong>ORM кеш</strong> (D7)</li>
     </ul>
-    <div class="cache-clear">
-        <strong>Очистка кеша Bitrix:</strong><br>
-        • Админка: Настройки → Автокеширование → Очистка файлов кеша<br>
-        • Через api<br>
-        • Вручную: <code>rm -rf /bitrix/cache/* && rm -rf /bitrix/managed_cache/*</code>
-    </div>
 </section>
 
 <section class="slide">
-    <h2>Bitrix: Управляемый кеш</h2>
-    <pre>
-        <code class="language-php">
-            $cache = \Bitrix\Main\Data\Cache::createInstance();
+    <h2 style="margin-bottom: 0">Bitrix: Управляемый/Тегированный кеш</h2>
+    <pre style="font-size: 11px"><code class="language-php">
+                    use Bitrix\Main\Data\Cache;
+                    use Bitrix\Main\Application;
 
-            if ($cache->initCache(3600, 'catalog_data', '/catalog/')) {
-                $data = $cache->getVars();
-            } elseif ($cache->startDataCache()) {
-                $data = getCatalogData();
-                $cache->endDataCache($data);
-            }
-        </code>
-    </pre>
-</section>
+                    $cache = Cache::createInstance();
+                    $tagCache = Application::getInstance()->getTaggedCache();
 
-<section class="slide">
-    <h2>Bitrix: Тегированный кеш</h2>
-    <pre><code class="language-php">
-        $cache = \Bitrix\Main\Data\Cache::createInstance();
-        if ($cache->startDataCache(3600, 'catalog_items_5', '/catalog/', ['iblock_id_5'])) {
-            $items = \CIBlockElement::GetList([], ['IBLOCK_ID' => 5]);
-            $cache->endDataCache($items);
-        } else {
-            $items = $cache->getVars();
-        }
+                    if ($cache->startDataCache(3600, 'products_5', '/products/')) {
+                        $tagCache->startTagCache('/products/');
+                        $tagCache->registerTag('iblock_id_5');
+                        $tagCache->registerTag('category_electronics');
+                        $tagCache->endTagCache();
 
-        // Инвалидация
-        \Bitrix\Main\Data\TaggedCache::clearByTag('iblock_id_5');
+                        $items = getProducts(5);
+                        $cache->endDataCache($items);
+                    }
+
+                    // Инвалидация
+                    $tagCache->clearByTag('category_electronics');
     </code></pre>
 </section>
 
 <section class="slide">
-    <h2>Bitrix: очистка кешей</h2>
+    <h2 style="margin-bottom: 0">Bitrix: Неуправляемый кеш</h2>
+    <pre style="font-size: 13px"><code class="language-php">
+                use Bitrix\Main\Data\Cache;
+
+                $cache = Cache::createInstance();
+                $cacheId = 'external_api_data';
+                $cacheDir = '/api/external/';
+
+                if ($cache->initCache(3600, $cacheId, $cacheDir)) {
+                    $result = $cache->getVars();
+                } elseif ($cache->startDataCache()) {
+                    $result = callExternalAPI();
+                    $cache->endDataCache($result);
+                }
+
+                // Ручная очистка
+                $cache->clean($cacheId, $cacheDir);
+    </code></pre>
+</section>
+
+<section class="slide">
+    <h2 style="margin-bottom: 0">Bitrix: Композитный кеш</h2>
+    <pre style="font-size: 12px"><code class="language-php">
+                // В .settings.php
+                'composite' => [
+                    'enabled' => true,
+                    'use_browser_cache' => true,
+                    'auto_update' => true,
+                ],
+
+                use Bitrix\Main\Composite\Page;
+                use Bitrix\Main\Context;
+
+                // Исключение блока из кеша
+                $frame = $this->createFrame()->begin();
+                    echo Context::getCurrent()->getUser()->getFullName();
+                $frame->end();
+
+                // Очистка кеша
+                Page::getInstance()->deleteAll();
+    </code></pre>
+</section>
+
+<section class="slide">
+    <h2 style="margin-bottom: 0">Bitrix: Кеш компонентов</h2>
+    <pre style="font-size: 13px"><code class="language-php">
+                use Bitrix\Main\Application;
+
+                Application::getInstance()->getIncludeAreaComponent(
+                    "bitrix:news.list",
+                    "template_name",
+                    [
+                        "IBLOCK_ID" => 1,
+                        "CACHE_TYPE" => "A",        // N, Y, A (авто)
+                        "CACHE_TIME" => 3600,
+                        "CACHE_GROUPS" => "Y",
+                    ]
+                );
+
+                // Очистка кеша компонента
+                \CBitrixComponent::clearComponentCache("bitrix:news.list");
+    </code></pre>
+</section>
+
+<section class="slide">
+    <h2 style="margin-bottom: 10px">Bitrix: ORM кеш (D7)</h2>
+    <pre style="font-size: 14px"><code class="language-php">
+                use Bitrix\Iblock\ElementTable;
+
+                $items = ElementTable::query()
+                    ->setSelect(['ID', 'NAME', 'IBLOCK_ID'])
+                    ->where('IBLOCK_ID', 5)
+                    ->where('ACTIVE', 'Y')
+                    ->setCacheTtl(3600) // Вот тут устанавливается
+                    ->cacheJoins(true)
+                    ->fetchAll();
+
+                // Автоматическая очистка при обновлении
+                ElementTable::getEntity()->cleanCache();
+    </code></pre>
+</section>
+
+<section class="slide">
+    <h2 style="margin-bottom: 10px">Bitrix: Кеш шаблонов и меню</h2>
+    <pre style="font-size: 12px"><code class="language-php">
+                use Bitrix\Main\Data\Cache;
+                use Bitrix\Main\Data\CacheManager;
+
+                // Очистка кеша меню
+                CacheManager::get()->cleanDir("menu");
+
+                // Очистка всех управляемых кешей
+                CacheManager::get()->cleanAll();
+
+                // Очистка кеша шаблонов компонентов
+                Cache::clearCache(true, "/");
+
+                // Очистка кеша настроек
+                Cache::createInstance()->cleanDir("/options/");
+    </code></pre>
+</section>
+
+<section class="slide">
+    <h2 style="margin-bottom: 10px">Bitrix: Стратегии инвалидации</h2>
     <div class="image-container">
-    <pre style="font-size: 11px"><code>
-            // Управляемый кеш
-            $GLOBALS["CACHE_MANAGER"]->CleanAll();
-            $GLOBALS["stackCacheManager"]->CleanAll();
+    <pre style="font-size: 12px"><code>
+                use Bitrix\Main\Data\Cache;
+                use Bitrix\Main\Application;
 
-            // Кеш меню
-            $GLOBALS["CACHE_MANAGER"]->CleanDir("menu");
-            CBitrixComponent::clearComponentCache("bitrix:menu");
+                // По ключу
+                Cache::createInstance()
+                    ->clean($cacheId, $dir);
 
-            // Html кеш
-            $page = \Bitrix\Main\Composite\Page::getInstance();
-            $page->deleteAll();
+                // По директории
+                Cache::createInstance()
+                    ->cleanDir($dir);
 
-            // по ключу
-            $cache = \Bitrix\Main\Data\Cache::createInstance();
-            $cache->clean($uniqueString, $initDir);
+                // По тегу
+                Application::getInstance()
+                    ->getTaggedCache()
+                    ->clearByTag('iblock_id_2');
 </code></pre>
+        <pre style="font-size: 12px"><code>
+                                    use Bitrix\Iblock\ElementTable;
+                                    use Bitrix\Main\Composite\Page;
 
-        <pre style="font-size: 11px"><code>
-            // По директории
-            $cache = \Bitrix\Main\Data\Cache::createInstance();
-            $cache->cleanDir($initDir);
+                                    // Для ORM сущности
+                                    ElementTable::getEntity()
+                                        ->cleanCache();
 
-            // По тегу
-            $taggedCache = \Bitrix\Main\Application::getInstance()->getTaggedCache();
-            $taggedCache->clearByTag('iblock_id_2');
+                                    // Композитный кеш
+                                    Page::getInstance()
+                                        ->deleteAll();
 
-            // Все теги
-            $taggedCache = \Bitrix\Main\Application::getInstance()->getTaggedCache();
-            $taggedCache->deleteAllTags();
-
-            // Для элементов инфоблока
-            \Bitrix\Iblock\ElementTable::getEntity()->cleanCache();
-            // Для любой ORM сущности
-            $entity::getEntity()->cleanCache();
+                                    // Html кеш страницы
+                                    Page::getInstance()
+                                        ->delete('/catalog/item/123/');
 </code></pre>
     </div>
 </section>
@@ -303,30 +412,204 @@ location ~* \.(jpg|jpeg|png|gif|ico|css|js|woff2?|ttf|svg)$ {
 <section class="slide">
     <h2>Symfony: типы кеша</h2>
     <ul>
-        <li>Кеш конфигов, роутов, сервисов</li>
-        <li>HTTP-кеш (Cache-Control, ETag)</li>
-        <li>Doctrine L2 Cache (query, result)</li>
-        <li>Tag-aware Cache</li>
+        <li><strong>Кеш системы</strong> (конфиги, роуты, контейнер)</li>
+        <li><strong>HTTP кеш</strong> (Gateway Cache)</li>
+        <li><strong>Прикладной кеш</strong> (Cache Pools)</li>
+        <li><strong>Tag-aware Cache</strong></li>
+        <li><strong>Doctrine кеш</strong> (Query, Result, Metadata)</li>
+        <li><strong>Validation кеш</strong></li>
+        <li><strong>Serializer кеш</strong></li>
+    </ul>
+</section>
+
+<section class="slide">
+    <h2>Symfony: Системный кеш</h2>
+    <ul>
+        <li>Компиляция контейнера зависимостей</li>
+        <li>Кеш конфигураций (YAML, XML, PHP)</li>
+        <li>Кеш роутинга и аннотаций</li>
     </ul>
     <div class="cache-clear">
-        <strong>Очистка кеша Symfony:</strong><br>
-        • <code>php bin/console cache:clear</code><br>
-        • <code>php bin/console cache:pool:clear app.cache</code><br>
-        • <code>rm -rf var/cache/prod/*</code>
+        <strong>Очистка системного кеша:</strong><br>
+        • <code>php bin/console cache:clear</code> (текущее окружение)<br>
+        • <code>php bin/console cache:clear --env=prod</code><br>
+        • <code>php bin/console cache:warmup</code> (прогрев)<br>
+        • <code>rm -rf var/cache/*</code> (полная очистка)
     </div>
 </section>
 
 <section class="slide">
-    <h2>Symfony: Tag-aware Cache</h2>
-    <pre><code class="language-php">
-        $cache->get('products_list', function (ItemInterface $item) {
-            $item->tag(['products', 'category_5']);
-            return $this->fetchProducts();
-        });
+    <h2 style="margin-bottom: 0">Symfony: HTTP кеш</h2>
+    <pre style="font-size: 12px"><code class="language-php">
+                use Symfony\Component\HttpFoundation\Response;
 
-        // Инвалидация:
-        $cache->invalidateTags(['category_5']);
+                public function index(): Response
+                {
+                    $response = $this->render('page/index.html.twig');
+
+                    // Public cache с max-age
+                    $response->setPublic();
+                    $response->setMaxAge(3600);
+                    $response->setSharedMaxAge(3600);
+
+                    // ETag для валидации
+                    $response->setETag(md5($response->getContent()));
+
+                    return $response;
+                }
     </code></pre>
+</section>
+
+<section class="slide">
+    <h2 style="margin-bottom: 0">Symfony: Cache Pools</h2>
+    <pre style="font-size: 12px"><code class="language-php">
+                use Symfony\Contracts\Cache\CacheInterface;
+                use Symfony\Contracts\Cache\ItemInterface;
+
+                public function __construct(private CacheInterface $cache) {}
+
+                public function getProducts(): array
+                {
+                    return $this->cache->get('products_list', function (ItemInterface $item) {
+                        $item->expiresAfter(3600); // TTL 1 час
+
+                        return $this->productRepository->findAll();
+                    });
+                }
+
+                // Очистка пула
+                $this->cache->delete('products_list');
+    </code></pre>
+</section>
+
+<section class="slide">
+    <h2 style="margin-bottom: 0">Symfony: Tag-aware Cache</h2>
+    <pre style="font-size: 12px"><code class="language-php">
+                use Symfony\Contracts\Cache\TagAwareCacheInterface;
+
+                public function __construct(
+                    private TagAwareCacheInterface $cache
+                ) {}
+
+                public function getProductsByCategory(int $categoryId): array
+                {
+                    return $this->cache->get("products_cat_{$categoryId}",
+                        function (ItemInterface $item) use ($categoryId) {
+                            $item->tag(['products', "category_{$categoryId}"]);
+                            $item->expiresAfter(3600);
+
+                            return $this->productRepository->findByCategory($categoryId);
+                        }
+                    );
+                }
+
+                // Инвалидация всех продуктов категории
+                $this->cache->invalidateTags(['category_5']);
+    </code></pre>
+</section>
+
+<section class="slide">
+    <h2 style="margin-bottom: 0">Symfony: Doctrine кеш</h2>
+    <pre style="font-size: 14px"><code class="language-php">
+                // Result Cache
+                $query = $em->createQuery('SELECT p FROM App\Entity\Product p');
+                $query->enableResultCache(3600, 'products_all');
+                $products = $query->getResult();
+
+                // Second Level Cache (L2)
+                // config/packages/doctrine.yaml
+                doctrine:
+                  orm:
+                    second_level_cache:
+                      enabled: true
+                      region_cache_driver:
+                        type: redis
+                        id: 'doctrine.cache.redis'
+    </code></pre>
+</section>
+
+<section class="slide">
+    <h2 style="margin-bottom: 0">Symfony: Doctrine L2 Cache</h2>
+    <pre style="font-size: 12px"><code class="language-php">
+                use Doctrine\ORM\Mapping as ORM;
+
+                #[ORM\Entity]
+                #[ORM\Cache(usage: "READ_ONLY", region: "products")]
+                class Product
+                {
+                    #[ORM\Id]
+                    #[ORM\Column(type: "integer")]
+                    private int $id;
+
+                    #[ORM\Column(type: "string")]
+                    private string $name;
+                }
+
+                // Очистка L2 Cache
+                $cacheDriver = $em->getConfiguration()->getResultCacheImpl();
+                $cacheDriver->deleteAll();
+    </code></pre>
+</section>
+
+<section class="slide">
+    <h2 style="margin-bottom: 10px">Symfony: Validation Cache</h2>
+    <pre style="font-size: 11px"><code class="language-yaml">
+                # config/packages/framework.yaml
+                framework:
+                    validation:
+                        cache: validator.mapping.cache.symfony
+
+                    cache:
+                        pools:
+                            validator.mapping.cache.symfony:
+                                adapter: cache.adapter.redis
+                                default_lifetime: 3600
+    </code></pre>
+    <div class="cache-clear">
+        <strong>Очистка:</strong> <code>php bin/console cache:pool:clear validator.mapping.cache.symfony</code>
+    </div>
+</section>
+
+<section class="slide">
+    <h2 style="margin-bottom: 0">Symfony: Конфигурация пулов</h2>
+    <pre style="font-size: 11px"><code class="language-yaml">
+                # config/packages/cache.yaml
+                framework:
+                    cache:
+                        app: cache.adapter.redis
+                        default_redis_provider: 'redis://localhost'
+
+                        pools:
+                            app.cache.products:
+                                adapter: cache.adapter.redis
+                                default_lifetime: 3600
+                                tags: true
+
+                            app.cache.sessions:
+                                adapter: cache.adapter.memcached
+                                provider: 'memcached://localhost'
+
+                            app.cache.expensive:
+                                adapter: cache.adapter.filesystem
+                                default_lifetime: 86400
+    </code></pre>
+</section>
+
+<section class="slide">
+    <h2>Symfony: Стратегии очистки</h2>
+    <div class="cache-clear">
+        <strong>По пулам:</strong><br>
+        <code>php bin/console cache:pool:clear app.cache.products</code><br>
+        <code>php bin/console cache:pool:list</code><br><br>
+
+        <strong>По тегам:</strong><br>
+        <code>$cache->invalidateTags(['products', 'category_5']);</code><br><br>
+
+        <strong>Doctrine:</strong><br>
+        <code>php bin/console doctrine:cache:clear-query</code><br>
+        <code>php bin/console doctrine:cache:clear-result</code><br>
+        <code>php bin/console doctrine:cache:clear-metadata</code>
+    </div>
 </section>
 
 <section class="slide">
@@ -347,8 +630,7 @@ location ~* \.(jpg|jpeg|png|gif|ico|css|js|woff2?|ttf|svg)$ {
 
 <section class="slide">
     <h2>Request Memoization</h2>
-    <pre><code class="language-js">
-        async function getData() {
+    <pre><code class="language-js">        async function getData() {
           const res = await fetch('https://api.example.com/data')
           return res.json()
         }
@@ -361,8 +643,7 @@ location ~* \.(jpg|jpeg|png|gif|ico|css|js|woff2?|ttf|svg)$ {
 
 <section class="slide">
     <h2>Data Cache</h2>
-    <pre><code class="language-js">
-            // Кешировать ответ (по умолчанию в Next.js 14)
+    <pre><code class="language-js">            // Кешировать ответ (по умолчанию в Next.js 14)
             fetch('https://...', { cache: 'force-cache' })
 
             // Не кешировать (по умолчанию в Next.js 15)
@@ -378,8 +659,7 @@ location ~* \.(jpg|jpeg|png|gif|ico|css|js|woff2?|ttf|svg)$ {
 
 <section class="slide">
     <h2>Next.js Cache Invalidation</h2>
-    <pre><code class="language-js">
-        import { revalidateTag, revalidatePath } from 'next/cache'
+    <pre><code class="language-js">        import { revalidateTag, revalidatePath } from 'next/cache'
 
         revalidateTag('users')
         revalidatePath('/dashboard')
@@ -395,8 +675,7 @@ location ~* \.(jpg|jpeg|png|gif|ico|css|js|woff2?|ttf|svg)$ {
 
 <section class="slide">
     <h2>Full Route Cache</h2>
-    <pre><code class="language-js">
-            // layout.tsx или page.tsx
+    <pre><code class="language-js">            // layout.tsx или page.tsx
             'use cache'
 
             export default async function Page() {
@@ -408,8 +687,7 @@ location ~* \.(jpg|jpeg|png|gif|ico|css|js|woff2?|ttf|svg)$ {
 
 <section class="slide">
     <h2>Router cache</h2>
-    <pre><code>
-        'use client'
+    <pre><code>        'use client'
         import { useRouter } from 'next/navigation'
 
         export function RefreshButton() {
@@ -420,9 +698,13 @@ location ~* \.(jpg|jpeg|png|gif|ico|css|js|woff2?|ttf|svg)$ {
 </section>
 
 <section class="slide">
+    <h2>Цепочка кешей (Distributed cache)</h2>
+    <img src="pictures/level-disturb.png" width="55%" class="place"/>
+</section>
+
+<section class="slide">
     <h2>Redis Cache</h2>
-    <pre><code class="language-bash" style="font-size: 14px">
-                # Очистка всего кеша
+    <pre><code class="language-bash" style="font-size: 14px">                # Очистка всего кеша
                 redis-cli FLUSHALL
 
                 # Очистка конкретной базы
@@ -437,20 +719,254 @@ location ~* \.(jpg|jpeg|png|gif|ico|css|js|woff2?|ttf|svg)$ {
 </section>
 
 <section class="slide">
-    <h2>Memcached Cache</h2>
-    <pre><code class="language-bash" style="font-size: 14px">
-                # Очистка всего кеша
-                echo "flush_all" | nc localhost 11211
+    <h2>Цепочка кешей</h2>
+    <img src="pictures/level-final.png" width="55%" class="place"/>
+</section>
 
-                # Через telnet
-                telnet localhost 11211
-                flush_all
-                quit
+<section class="slide">
+    <h2 class="shout shrink">Идентификация работы кеша</h2>
+</section>
 
-                # В PHP
-                $memcached = new Memcached();
-                $memcached->flush();
+<section class="slide">
+    <h2>Диагностика: общий подход</h2>
+    <ul>
+        <li><strong>Заголовки HTTP</strong> — основной источник информации</li>
+        <li><strong>Метрики времени</strong> — TTFB, загрузка</li>
+        <li><strong>Служебные маркеры</strong> — X-Cache, Age, Via</li>
+        <li><strong>DevTools Network</strong> — статусы и таймлайн</li>
+        <li><strong>Логи сервера</strong> — hit/miss в реальном времени</li>
+    </ul>
+</section>
+
+<section class="slide">
+    <h2 style="margin-bottom: 10px">Идентификация: DNS кеш</h2>
+    <div class="diagnostic">
+        <strong>Признаки работы:</strong><br>
+        • Моментальное разрешение доменного имени<br>
+        • Отсутствие DNS-запросов в Wireshark/tcpdump<br>
+        • <code>nslookup</code> возвращает результат мгновенно<br><br>
+
+        <strong>Проверка:</strong><br>
+        • <code>ipconfig /displaydns</code> (Windows)<br>
+        • <code>dscacheutil -cachedump -entries Host</code> (macOS)<br>
+        • Очистить кеш и замерить время повторного резолва<br><br>
+
+        <strong>Характеристики:</strong><br>
+        • TTFB: не влияет после резолва<br>
+        • TTL: задается в DNS-записи (обычно 300-3600 сек)
+    </div>
+</section>
+
+<section class="slide">
+    <h2 style="margin-bottom: 10px">Идентификация: браузерный кеш</h2>
+    <div class="diagnostic">
+        <strong>Признаки работы:</strong><br>
+        • Статус <code>200 (from disk cache)</code> или <code>(from memory cache)</code><br>
+        • Статус <code>304 Not Modified</code> при ревалидации<br>
+        • Size: <code>(disk cache)</code> или <code>(memory cache)</code><br>
+        • Нулевое время загрузки в Network Timeline<br><br>
+
+        <strong>Заголовки:</strong><br>
+        • Request: <code>If-None-Match</code>, <code>If-Modified-Since</code><br>
+        • Response: <code>Cache-Control</code>, <code>ETag</code>, <code>Last-Modified</code><br>
+        • <code>Age: 0</code> при свежем кеше<br><br>
+
+        <strong>Проверка:</strong><br>
+        • DevTools → Network → Disable cache (выключить)<br>
+        • Hard refresh: Ctrl+F5 / Cmd+Shift+R
+    </div>
+</section>
+
+<section class="slide">
+    <h2 style="margin-bottom: 10px">Идентификация: CDN кеш</h2>
+    <div class="diagnostic">
+        <strong>Служебные заголовки:</strong><br>
+        • <code>X-Cache: HIT</code> / <code>MISS</code> / <code>BYPASS</code><br>
+        • <code>X-Cache-Status: HIT</code> (Cloudflare, Fastly)<br>
+        • <code>CF-Cache-Status: HIT</code> (Cloudflare)<br>
+        • <code>X-Served-By: cache-fra19121-FRA</code><br>
+        • <code>Age: 1234</code> — возраст кеша в секундах<br><br>
+
+        <strong>Характеристики HIT:</strong><br>
+        • TTFB: 10-50ms (edge proximity)<br>
+        • Стабильное время ответа<br>
+        • Заголовок <code>Age</code> растёт между запросами<br><br>
+
+        <strong>Проверка:</strong><br>
+        • <code>curl -I https://site.com/style.css</code><br>
+        • Запросы из разных регионов (VPN)
+    </div>
+</section>
+
+<section class="slide">
+    <h2 style="margin-bottom: 10px">Идентификация: Reverse Proxy</h2>
+    <div class="diagnostic">
+        <strong>Nginx заголовки:</strong><br>
+        • <code>X-Proxy-Cache: HIT</code> / <code>MISS</code> / <code>EXPIRED</code><br>
+        • <code>X-Cache-Status: $upstream_cache_status</code><br>
+        • <code>Age: секунды</code><br><br>
+
+        <strong>Varnish:</strong><br>
+        • <code>X-Varnish: 123456 789012</code> (HIT если 2 числа)<br>
+        • <code>X-Cache: HIT</code><br>
+        • <code>Via: 1.1 varnish</code><br><br>
+
+        <strong>Характеристики:</strong><br>
+        • TTFB: 5-20ms (локальная сеть)<br>
+        • Стабильный ответ для одинаковых запросов<br>
+        • Отсутствие логов апстрима в access.log бэкенда
+    </div>
+</section>
+
+<section class="slide">
+    <h2>Nginx: добавление маркеров</h2>
+    <pre style="font-size: 12px"><code class="language-nginx">location / {
+    proxy_pass http://backend;
+    proxy_cache my_cache;
+    proxy_cache_valid 200 10m;
+
+    # Добавляем заголовок статуса кеша
+    add_header X-Proxy-Cache $upstream_cache_status always;
+    add_header X-Cache-Key $scheme$proxy_host$request_uri;
+
+    # HIT, MISS, EXPIRED, STALE, UPDATING, REVALIDATED, BYPASS
+}
+
+# В логах
+log_format cache_log '$remote_addr - $upstream_cache_status [$time_local] '
+                     '"$request" $status';
     </code></pre>
+</section>
+
+<section class="slide">
+    <h2 style="margin-bottom: 10px">Идентификация: Bitrix кеш</h2>
+    <div class="diagnostic">
+        <strong>Композитный кеш:</strong><br>
+        • HTML комментарий: <code>&lt;!-- COMPOSITE_CACHE --&gt;</code><br>
+        • Cookie: <code>BX_COMPOSITE_CACHE</code><br>
+        • Заголовок: <code>X-Bitrix-Composite: Cache (200)</code><br><br>
+
+        <strong>Компонентный кеш:</strong><br>
+        • Проверка директорий <code>/bitrix/cache/</code><br>
+        • Файлы с префиксом и хешем параметров<br>
+        • Логи: включить <code>define("LOG_CACHE", true);</code><br><br>
+
+        <strong>Проверка в коде:</strong><br>
+        • Дебаг: <code>$cache->initCache()</code> возвращает true<br>
+        • Время выполнения падает в 10-100 раз<br>
+        • Счётчик запросов к БД не растёт
+    </div>
+</section>
+
+<section class="slide">
+    <h2 style="margin-bottom: 10px">Идентификация: Symfony кеш</h2>
+    <div class="diagnostic">
+        <strong>HTTP кеш:</strong><br>
+        • <code>X-Symfony-Cache: GET /: fresh</code><br>
+        • <code>Age: секунды</code> — возраст кеша<br>
+        • <code>X-Content-Digest: хеш</code><br><br>
+
+        <strong>Прикладной кеш:</strong><br>
+        • Symfony Profiler → Cache панель<br>
+        • Метрики: hits, misses, write time<br>
+        • Redis Monitor: <code>MONITOR</code> в реальном времени<br>
+        • Логи: <code>logger</code> с каналом 'cache'<br><br>
+
+        <strong>В коде:</strong><br>
+        • Debug: <code>$item->isHit()</code><br>
+        • Время выполнения callback не вызывается при hit
+    </div>
+</section>
+
+<section class="slide">
+    <h2 style="margin-bottom: 10px">Идентификация: Redis/Memcached</h2>
+    <div class="diagnostic">
+        <strong>Redis:</strong><br>
+        • <code>redis-cli MONITOR</code> — все команды в реальном времени<br>
+        • <code>redis-cli INFO stats</code> → keyspace_hits/misses<br>
+        • <code>redis-cli --stat</code> — метрики каждую секунду<br>
+        • <code>GET key</code> проверка конкретного ключа<br><br>
+
+        <strong>Memcached:</strong><br>
+        • <code>echo "stats" | nc localhost 11211</code><br>
+        • <code>get_hits</code> / <code>get_misses</code> — счётчики<br>
+        • <code>curr_items</code> — количество ключей<br>
+        • <code>evictions</code> — вытеснения из-за нехватки памяти<br><br>
+
+        <strong>Hit rate:</strong> hits / (hits + misses) × 100%<br>
+        Здоровый hit rate: >80% для стабильной нагрузки
+    </div>
+</section>
+
+<section class="slide">
+    <h2 style="margin-bottom: 10px">Инструменты диагностики</h2>
+    <ul>
+        <li><strong>Browser DevTools</strong> — Network, Headers, Timing</li>
+        <li><strong>curl</strong> — <code>curl -I -H "Cache-Control: no-cache" URL</code></li>
+        <li><strong>RedBot</strong> — https://redbot.org (анализ кеша)</li>
+        <li><strong>Varnishlog</strong> — детальные логи Varnish</li>
+        <li><strong>Redis CLI</strong> — MONITOR, INFO, --stat</li>
+        <li><strong>Symfony Profiler</strong> — Cache панель</li>
+        <li><strong>Bitrix Debug</strong> — LOG_CACHE, панель управления</li>
+        <li><strong>Wireshark/tcpdump</strong> — сетевой анализ</li>
+    </ul>
+</section>
+
+<section class="slide">
+    <h2 style="margin-bottom: 10px">Паттерны идентификации: HIT</h2>
+    <div class="diagnostic">
+        <strong>Явные признаки HIT:</strong><br>
+        • Заголовки: X-Cache: HIT, X-Proxy-Cache: HIT<br>
+        • Статус: 200 (from cache), 304 Not Modified<br>
+        • Age > 0 и растёт между запросами<br>
+        • TTFB: стабильно низкий (< 50ms для edge)<br>
+        • Size: (disk cache) или (memory cache)<br>
+        • Отсутствие в логах апстрима/бэкенда<br><br>
+
+        <strong>Проверка:</strong><br>
+        1. Первый запрос → записываем Age и заголовки<br>
+        2. Второй запрос → Age увеличился = HIT<br>
+        3. ETag/Last-Modified не изменились<br>
+        4. Время отклика стабильно и мало
+    </div>
+</section>
+
+<section class="slide">
+    <h2 style="margin-bottom: 10px">Паттерны идентификации: MISS</h2>
+    <div class="diagnostic">
+        <strong>Явные признаки MISS:</strong><br>
+        • Заголовки: X-Cache: MISS, X-Proxy-Cache: MISS<br>
+        • Age: 0 или отсутствует<br>
+        • TTFB: высокий (время генерации на бэкенде)<br>
+        • Запрос есть в логах апстрима<br>
+        • Статус: 200 OK (не from cache)<br><br>
+
+        <strong>Причины MISS:</strong><br>
+        • Холодный кеш (первый запрос)<br>
+        • TTL истёк (EXPIRED → MISS + обновление)<br>
+        • Cache-Control: no-cache в запросе<br>
+        • Vary не совпал (Accept-Encoding, Cookie)<br>
+        • Ручная инвалидация/purge
+    </div>
+</section>
+
+<section class="slide">
+    <h2 style="margin-bottom: 10px">Многоуровневая диагностика</h2>
+    <div class="diagnostic" style="font-size: 14px;">
+        <strong>Сценарий: определить, где HIT</strong><br><br>
+
+        1. <strong>Браузер:</strong> DevTools → (from disk cache)? → Браузерный кеш<br>
+        2. <strong>CDN:</strong> X-Cache-Status: HIT? → CDN кеш<br>
+        3. <strong>Proxy:</strong> X-Proxy-Cache: HIT? → Nginx/Varnish<br>
+        4. <strong>Приложение:</strong> Низкий DB query count? → App cache<br>
+        5. <strong>Redis:</strong> MONITOR показывает GET без SET? → Redis HIT<br><br>
+
+        <strong>Последовательность исключения:</strong><br>
+        • Ctrl+F5 → обход браузера<br>
+        • Cache-Control: no-cache → обход CDN/proxy<br>
+        • Purge Redis ключ → проверка app layer<br>
+        • Мониторинг логов на каждом уровне
+    </div>
 </section>
 
 <section class="slide">
@@ -535,16 +1051,6 @@ location ~* \.(jpg|jpeg|png|gif|ico|css|js|woff2?|ttf|svg)$ {
         <li>Cache poisoning</li>
         <li>Минимум PII в кеше</li>
         <li>Шифрование чувствительных данных</li>
-    </ul>
-</section>
-
-<section class="slide">
-    <h2>Когда НЕ кешировать</h2>
-    <ul>
-        <li>Часто меняющиеся данные</li>
-        <li>Персонализированный контент</li>
-        <li>Критичные по актуальности</li>
-        <li>Редко запрашиваемые данные</li>
     </ul>
 </section>
 
