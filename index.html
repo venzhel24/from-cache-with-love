@@ -36,7 +36,6 @@
         <li>Идентификация работы кеша</li>
         <li>Стратегии</li>
         <li>Ошибки</li>
-        <li>Современные тренды</li>
     </ul>
 </section>
 
@@ -67,7 +66,7 @@
         <li>TTL (Time To Live)</li>
         <li>Тёплый / холодный кеш</li>
         <li>Stale data</li>
-        <li>Memory usage, eviction rate</li>
+        <li>eviction rate</li>
     </ul>
 </section>
 
@@ -177,7 +176,6 @@
     <ul>
         <li><strong>Кеширование статики</strong> — CSS, JS, изображения, шрифты</li>
         <li><strong>Proxy cache</strong> — HTTP-ответы от бэкенда</li>
-        <li><strong>FastCGI cache</strong> — кеш PHP/динамических запросов</li>
         <li><strong>Auth cache</strong> — кеш результатов аутентификации</li>
     </ul>
 </section>
@@ -778,6 +776,11 @@
 </section>
 
 <section class="slide">
+    <h2>Идентификация: браузерный кеш</h2>
+    <img  src="pictures/disk-cache.png" width="50%" class="place"/>
+</section>
+
+<section class="slide">
     <h2 style="margin-bottom: 10px">Идентификация: CDN кеш</h2>
     <div class="diagnostic">
         <strong>Служебные заголовки:</strong><br>
@@ -1041,26 +1044,6 @@ log_format cache_log '$remote_addr - $upstream_cache_status [$time_local] '
         <li>Thundering herd</li>
         <li>Memory leak</li>
         <li>Stale data</li>
-    </ul>
-</section>
-
-<section class="slide">
-    <h2>Безопасность</h2>
-    <ul>
-        <li>Изоляция кеша (multi-tenant)</li>
-        <li>Cache poisoning</li>
-        <li>Минимум PII в кеше</li>
-        <li>Шифрование чувствительных данных</li>
-    </ul>
-</section>
-
-<section class="slide">
-    <h2>Современные тренды</h2>
-    <ul>
-        <li>Edge Computing (Cloudflare Workers)</li>
-        <li>ML-driven кеширование</li>
-        <li>Serverless кеширование</li>
-        <li>Адаптивные TTL</li>
     </ul>
 </section>
 
