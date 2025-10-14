@@ -68,19 +68,10 @@
     <ul>
         <li class="next">Hit rate / miss rate</li>
         <li class="next">TTL (Time To Live)</li>
-        <li class="next">Тёплый / холодный кеш</li>
+        <li class="next">Тёплый / холодный кеш (cache warming)</li>
         <li class="next">Stale data</li>
         <li class="next">eviction rate</li>
-    </ul>
-</section>
-
-<section class="slide">
-    <h2>Инвалидация</h2>
-    <ul>
-        <li class="next">По времени (TTL)</li>
-        <li class="next">По событию (data change)</li>
-        <li class="next">Tag-based (зависимости)</li>
-        <li class="next">Ручная (manual)</li>
+        <li class="next">Инвалидация</li>
     </ul>
 </section>
 
@@ -131,11 +122,20 @@
 <section class="slide">
     <h2>Браузерный кеш</h2>
     <ul>
-        <li>HTTP-кеш (Cache-Control, ETag)</li>
-        <li>localStorage, sessionStorage, IndexedDB</li>
-        <li>Service Workers (PWA)</li>
+        <li class="next">Кеширование ресурсов по HTTP:
+            <ul>
+                <li class="next"><code>Cache-Control</code>: директивы для управления кешированием (max-age, no-cache, public, private).</li>
+                <li class="next"><code>ETag</code> / <code>Last-Modified</code>: валидация кеша для избежания повторной загрузки.</li>
+            </ul>
+        </li>
+        <li class="next">Хранилища на стороне клиента (localStorage, sessionStorage, IndexedDB)</li>
+        <li class="next">Программное кеширование через Service Workers (PWA)</li>
     </ul>
-    <div class="cache-clear next">
+</section>
+
+<section class="slide">
+    <h2>Браузерный кеш</h2>
+    <div class="cache-clear">
         <strong>Очистка браузерного кеша:</strong><br>
         • <code>Ctrl+Shift+Delete</code> (универсальное сочетание)<br>
         • <code>Ctrl+F5</code> (жёсткое обновление страницы)<br>
@@ -145,7 +145,7 @@
 </section>
 
 <section class="slide">
-    <h2 style="margin-bottom: 10px">Идентификация: браузерный кеш</h2>
+    <h2 style="margin-bottom: 10px">Браузерный кеш</h2>
     <div class="diagnostic">
         <strong>Признаки работы:</strong><br>
         • Статус <code>200 (from disk cache)</code> или <code>(from memory cache)</code><br>
@@ -165,8 +165,8 @@
 </section>
 
 <section class="slide">
-    <h2>Идентификация: браузерный кеш</h2>
-    <img  src="pictures/disk-cache.png" width="50%" class="place"/>
+    <h2 style="margin-bottom: 25px">Браузерный кеш</h2>
+    <img  src="pictures/disk-cache.png" width="90%" style="top: 53%" class="place"/>
 </section>
 
 <section class="slide">
@@ -195,7 +195,7 @@
 </section>
 
 <section class="slide">
-    <h2 style="margin-bottom: 10px">Идентификация: CDN кеш</h2>
+    <h2 style="margin-bottom: 10px">CDN</h2>
     <div class="diagnostic">
         <strong>Служебные заголовки:</strong><br>
         • <code>X-Cache: HIT</code> / <code>MISS</code> / <code>BYPASS</code><br>
@@ -228,58 +228,36 @@
         <li>Разгрузка бэкенда</li>
     </ul>
     <div class="next cache-clear">
-        <strong>Очистка Nginx proxy-кеша:</strong><br>
-        • <code>rm -rf /path/to/nginx/cache/*</code><br>
-        • PURGE-запрос: <code>curl -X PURGE http://site.com/page</code><br>
-        • Через API или конфиг с proxy_cache_purge
+        <strong>Очистка Varnish-кеша:</strong><br>
+        • <code>curl -X BAN http://site.com/page</code><br>
+        • <code>varnishadm ban "req.url ~ /page"</code><br>
+        • Через telnet: <code>ban req.url ~ /page</code>
     </div>
 </section>
 
 <section class="slide">
-    <h2>Nginx: управление заголовками</h2>
-    <pre><code class="language-nginx">location ~* \.(jpg|jpeg|png|gif|ico|css|js|woff2?|ttf|svg)$ {
-    expires 30d;
-    add_header Cache-Control "public, max-age=2592000";
-    add_header Vary Accept-Encoding;
-}
-    </code></pre>
-    <div class="cache-clear">
-        <strong>Очистка:</strong> Нет серверного кеша, только браузерный.<br>
-        Решение: cache-busting (style.css?v=1.2.3)
-    </div>
-</section>
-
-<section class="slide">
-    <h2>Nginx: Proxy Cache</h2>
-    <pre><code class="language-nginx" style="font-size: 14px">        # Настройка зоны кеширования
-        proxy_cache_path /data/nginx/cache
-            levels=1:2
-            keys_zone=my_cache:100m
-            max_size=10g
-            inactive=60m;
-
-        location / {
-            proxy_pass http://backend;
-            proxy_cache my_cache;
-            proxy_cache_valid 200 302 10m;
-            proxy_cache_valid 404 1m;
-            add_header X-Proxy-Cache $upstream_cache_status;
+    <h2 style="margin-bottom: 0;">Varnish</h2>
+        <pre><code class="language-varnish" style="font-size: 14px">
+        sub vcl_backend_response {
+            if (beresp.ttl > 0s) {
+                set beresp.http.Cache-Control = "public, max-age=" + beresp.ttl;
+                unset beresp.http.Set-Cookie;
+                return (deliver);
+            }
         }
-    </code></pre>
+
+        sub vcl_deliver {
+            if (obj.hits > 0) {
+                set resp.http.X-Cache = "HIT";
+            } else {
+                set resp.http.X-Cache = "MISS";
+            }
+        }
+        </code></pre>
 </section>
 
 <section class="slide">
-    <h2>Nginx: Cache clear</h2>
-    <div class="cache-clear">
-        <strong>Очистка Proxy Cache:</strong><br>
-        • <code>rm -rf /data/nginx/cache/*</code><br>
-        • PURGE-запрос: <code>curl -X PURGE http://site.com/page</code><br>
-        • Модуль ngx_cache_purge для управления
-    </div>
-</section>
-
-<section class="slide">
-    <h2 style="margin-bottom: 10px">Идентификация Reverse Proxy</h2>
+    <h2 style="margin-bottom: 10px">Reverse Proxy</h2>
     <div class="diagnostic">
         <strong>Nginx заголовки:</strong><br>
         • <code>X-Proxy-Cache: HIT</code> / <code>MISS</code> / <code>EXPIRED</code><br>
@@ -298,25 +276,6 @@
     </div>
 </section>
 
-<section class="slide">
-    <h2>Nginx: добавление маркеров</h2>
-    <pre style="font-size: 12px"><code class="language-nginx">location / {
-    proxy_pass http://backend;
-    proxy_cache my_cache;
-    proxy_cache_valid 200 10m;
-
-    # Добавляем заголовок статуса кеша
-    add_header X-Proxy-Cache $upstream_cache_status always;
-    add_header X-Cache-Key $scheme$proxy_host$request_uri;
-
-    # HIT, MISS, EXPIRED, STALE, UPDATING, REVALIDATED, BYPASS
-    }
-
-    # В логах
-    log_format cache_log '$remote_addr - $upstream_cache_status [$time_local] '
-                         '"$request" $status';
-    </code></pre>
-</section>
 
 <section class="slide">
     <h2>Цепочка кешей (Приложение)</h2>
@@ -444,27 +403,7 @@
 </section>
 
 <section class="slide">
-    <h2 style="margin-bottom: 10px">Bitrix: Кеш шаблонов и меню</h2>
-    <pre style="font-size: 12px"><code class="language-php">
-                use Bitrix\Main\Data\Cache;
-                use Bitrix\Main\Data\CacheManager;
-
-                // Очистка кеша меню
-                CacheManager::get()->cleanDir("menu");
-
-                // Очистка всех управляемых кешей
-                CacheManager::get()->cleanAll();
-
-                // Очистка кеша шаблонов компонентов
-                Cache::clearCache(true, "/");
-
-                // Очистка кеша настроек
-                Cache::createInstance()->cleanDir("/options/");
-    </code></pre>
-</section>
-
-<section class="slide">
-    <h2 style="margin-bottom: 10px">Bitrix: Стратегии инвалидации</h2>
+    <h2 style="margin-bottom: 10px">Bitrix: Очистка кеша</h2>
     <div class="image-container">
     <pre style="font-size: 12px"><code>
                 use Bitrix\Main\Data\Cache;
@@ -525,13 +464,11 @@
 <section class="slide">
     <h2>Symfony: типы кеша</h2>
     <ul>
-        <li><strong>Кеш системы</strong> (конфиги, роуты, контейнер)</li>
-        <li><strong>HTTP кеш</strong> (Gateway Cache)</li>
-        <li><strong>Прикладной кеш</strong> (Cache Pools)</li>
-        <li><strong>Tag-aware Cache</strong></li>
-        <li><strong>Doctrine кеш</strong> (Query, Result, Metadata)</li>
-        <li><strong>Validation кеш</strong></li>
-        <li><strong>Serializer кеш</strong></li>
+        <li class="next"><strong>Кеш системы</strong> (конфиги, роуты, контейнер)</li>
+        <li class="next"><strong>HTTP кеш</strong> (Gateway Cache)</li>
+        <li class="next"><strong>Прикладной кеш</strong> (Cache Pools)</li>
+        <li class="next"><strong>Tag-aware Cache</strong></li>
+        <li class="next"><strong>Doctrine кеш</strong> (Query, Result, Metadata)</li>
     </ul>
 </section>
 
@@ -903,16 +840,6 @@
         <li>Требует прогнозирования</li>
     </ul>
     <!-- [Схема: кеш → (предзагрузка) → источник] -->
-</section>
-
-<section class="slide">
-    <h2>Cache warming</h2>
-    <ul>
-        <li>Предзаполнение кеша при старте</li>
-        <li>Для критичных данных</li>
-        <li>Снижает нагрузку на холодный старт</li>
-    </ul>
-    <!-- [Схема: инициализация → кеш ← данные] -->
 </section>
 
 <section class="slide">
