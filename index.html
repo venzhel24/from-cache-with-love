@@ -96,25 +96,6 @@
 </section>
 
 <section class="slide">
-    <h2 style="margin-bottom: 10px">Идентификация: DNS кеш</h2>
-    <div class="diagnostic">
-        <strong>Признаки работы:</strong><br>
-        • Моментальное разрешение доменного имени<br>
-        • Отсутствие DNS-запросов в Wireshark/tcpdump<br>
-        • <code>nslookup</code> возвращает результат мгновенно<br><br>
-
-        <strong>Проверка:</strong><br>
-        • <code>ipconfig /displaydns</code> (Windows)<br>
-        • <code>dscacheutil -cachedump -entries Host</code> (macOS)<br>
-        • Очистить кеш и замерить время повторного резолва<br><br>
-
-        <strong>Характеристики:</strong><br>
-        • TTFB: не влияет после резолва<br>
-        • TTL: задается в DNS-записи (обычно 300-3600 сек)
-    </div>
-</section>
-
-<section class="slide">
     <h2>Цепочка кешей (Browser)</h2>
     <img src="pictures/level-browser.png" width="20%" class="place"/>
 </section>
@@ -134,33 +115,22 @@
 </section>
 
 <section class="slide">
-    <h2>Браузерный кеш</h2>
-    <div class="cache-clear">
-        <strong>Очистка браузерного кеша:</strong><br>
-        • <code>Ctrl+Shift+Delete</code> (универсальное сочетание)<br>
-        • <code>Ctrl+F5</code> (жёсткое обновление страницы)<br>
-        • Chrome: Меню → Дополнительные инструменты → Удаление данных<br>
-        • Firefox: Меню → Настройки → Приватность и защита → Удалить данные
-    </div>
-</section>
-
-<section class="slide">
     <h2 style="margin-bottom: 10px">Браузерный кеш</h2>
     <div class="diagnostic">
         <strong>Признаки работы:</strong><br>
         • Статус <code>200 (from disk cache)</code> или <code>(from memory cache)</code><br>
         • Статус <code>304 Not Modified</code> при ревалидации<br>
-        • Size: <code>(disk cache)</code> или <code>(memory cache)</code><br>
-        • Нулевое время загрузки в Network Timeline<br><br>
+        • Size: <code>(disk cache)</code> или <code>(memory cache)</code> и Нулевое время загрузки в Network Timeline<br><br>
 
         <strong>Заголовки:</strong><br>
         • Request: <code>If-None-Match</code>, <code>If-Modified-Since</code><br>
         • Response: <code>Cache-Control</code>, <code>ETag</code>, <code>Last-Modified</code><br>
         • <code>Age: 0</code> при свежем кеше<br><br>
 
-        <strong>Проверка:</strong><br>
+        <strong>Очистка:</strong><br>
         • DevTools → Network → Disable cache (выключить)<br>
-        • Hard refresh: Ctrl+F5 / Cmd+Shift+R
+        • Hard refresh: Ctrl+F5 / Cmd+Shift+R<br>
+        • Chrome: Меню → Дополнительные инструменты → Удаление данных
     </div>
 </section>
 
@@ -296,6 +266,28 @@
 </section>
 
 <section class="slide">
+    <h2 style="margin-bottom: 0">Bitrix: Хранение кеша</h2>
+    <pre style="font-size: 12px;"><code class="language-php">
+                // .settings.php
+                return [
+                  'cache' => [
+                    'value' => [
+                      'type' => 'files', // files | memcache | redis
+                      'memcache' => [
+                        'host' => '127.0.0.1',
+                        'port' => '11211',
+                      ],
+                      'redis' => [
+                        'host' => '127.0.0.1',
+                        'port' => 6379,
+                      ],
+                    ],
+                  ],
+                ];
+    </code></pre>
+</section>
+
+<section class="slide">
     <h2 style="margin-bottom: 0">Bitrix: Управляемый/Тегированный кеш</h2>
     <pre style="font-size: 11px"><code class="language-php">
                     use Bitrix\Main\Data\Cache;
@@ -349,13 +341,29 @@
                     'use_browser_cache' => true,
                     'auto_update' => true,
                 ],
+    </code></pre>
+    <p>Настройки -> Композитный сайт -> Настройка -> Автокомпозит / Композит</p>
+</section>
 
+<section class="slide">
+    <h2 style="margin-bottom: 0">Bitrix: Композитный кеш</h2>
+    <pre style="font-size: 11px"><code class="language-php" style="padding-top: 0px">
                 use Bitrix\Main\Composite\Page;
                 use Bitrix\Main\Context;
 
-                // Исключение блока из кеша
-                $frame = $this->createFrame()->begin();
-                    echo Context::getCurrent()->getUser()->getFullName();
+                // Создание динамической области
+                $frame = $this->createFrame("user_info", true)->begin();
+
+                // Содержимое, которое будет загружаться асинхронно
+                if (Context::getCurrent()->getUser()->isAuthorized()) {
+                    echo "Привет, " . Context::getCurrent()->getUser()->getFullName();
+                } else {
+                    echo "Привет, Гость!";
+                }
+
+                // Заглушка, которая отображается до загрузки контента
+                $frame->beginStub();
+                    echo "Загрузка...";
                 $frame->end();
 
                 // Очистка кеша
@@ -382,6 +390,24 @@
                 // Очистка кеша компонента
                 \CBitrixComponent::clearComponentCache("bitrix:news.list");
     </code></pre>
+</section>
+
+<section class="slide">
+    <h2 style="margin-bottom: 0">Bitrix: Кеш компонентов</h2>
+    <video width="80%" class="place" autoplay loop muted playsinline>
+        <source src="pictures/component_cache.webm" type="video/webm">
+        Ваш браузер не поддерживает видео.
+    </video>
+</section>
+
+<section class="slide">
+    <h2 style="margin-bottom: 35px">Bitrix: Кеша компонента</h2>
+    <ul>
+        <li><strong>Component.php / Class.php</strong> (Основная логика компонента)</li>
+        <li class="next"><strong>template.php</strong> (Шаблон компонента)</li>
+        <li class="next"><strong>result_modifier.php</strong> (Слой между компонентом и шаблоном)</li>
+        <li class="next"><strong>component_epilog.php</strong> (Постобработка после рендеринга)</li>
+    </ul>
 </section>
 
 <section class="slide">
@@ -439,6 +465,14 @@
                                         ->delete('/catalog/item/123/');
 </code></pre>
     </div>
+</section>
+
+<section class="slide">
+    <h2 style="margin-bottom: 0">Bitrix: Очистка кеша</h2>
+    <video width="80%" style="top: 58%" class="place" autoplay loop muted playsinline>
+        <source src="pictures/bx-cache-clear.webm" type="video/webm">
+        Ваш браузер не поддерживает видео.
+    </video>
 </section>
 
 <section class="slide">
@@ -602,31 +636,6 @@
 </section>
 
 <section class="slide">
-    <h2 style="margin-bottom: 0">Symfony: Конфигурация пулов</h2>
-    <pre style="font-size: 11px"><code class="language-yaml">
-                # config/packages/cache.yaml
-                framework:
-                    cache:
-                        app: cache.adapter.redis
-                        default_redis_provider: 'redis://localhost'
-
-                        pools:
-                            app.cache.products:
-                                adapter: cache.adapter.redis
-                                default_lifetime: 3600
-                                tags: true
-
-                            app.cache.sessions:
-                                adapter: cache.adapter.memcached
-                                provider: 'memcached://localhost'
-
-                            app.cache.expensive:
-                                adapter: cache.adapter.filesystem
-                                default_lifetime: 86400
-    </code></pre>
-</section>
-
-<section class="slide">
     <h2>Symfony: Стратегии очистки</h2>
     <div class="cache-clear">
         <strong>По пулам:</strong><br>
@@ -765,6 +774,12 @@
 </section>
 
 <section class="slide">
+    <h2>Метрики</h2>
+    <img  src="pictures/metrics.jpg" width="92%" class="place"/>
+<!--    Тут картинка с метриками графаны от redis/varnish-->
+</section>
+
+<section class="slide">
     <h2>Цепочка кешей</h2>
     <img src="pictures/level-final.png" width="55%" class="place"/>
 </section>
@@ -786,6 +801,45 @@
         • Purge Redis ключ → проверка app layer<br>
         • Мониторинг логов на каждом уровне
     </div>
+</section>
+
+<section class="slide">
+    <h2>Типичное время отклика по уровням</h2>
+    <table class="grid">
+        <thead>
+        <tr>
+            <th>Уровень кеша</th>
+            <th>Типичное время отклика (TTFB)</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>Браузер (memory/disk cache)</td>
+            <td>0 мс</td>
+        </tr>
+        <tr>
+            <td>CDN (edge)</td>
+            <td>10-50 мс</td>
+        </tr>
+        <tr>
+            <td>Reverse Proxy (Varnish, Nginx)</td>
+            <td>5-20 мс</td>
+        </tr>
+        <tr>
+            <td>In-memory (Redis, Memcached)</td>
+            <td>1-5 мс</td>
+        </tr>
+        <tr>
+            <td>Бэкенд (без кеша)</td>
+            <td>100-1000+ мс</td>
+        </tr>
+        </tbody>
+    </table>
+    <p style="font-size: 0.6em; margin-top: 1em;">
+        * Время указано для обработки на каждом уровне в изоляции. <br>
+        Полное время запроса = время обработки + сетевые задержки (RTT) между всеми пройденными уровнями.<br>
+        Например: пользователь → CDN edge (10-50 мс) + RTT до edge (20-150 мс в зависимости от региона).
+    </p>
 </section>
 
 <section class="slide">
