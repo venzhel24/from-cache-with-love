@@ -266,6 +266,28 @@
 </section>
 
 <section class="slide">
+    <h2 style="margin-bottom: 0">Bitrix: Хранение кеша</h2>
+    <pre style="font-size: 12px;"><code class="language-php">
+                // .settings.php
+                return [
+                  'cache' => [
+                    'value' => [
+                      'type' => 'files', // files | memcache | redis
+                      'memcache' => [
+                        'host' => '127.0.0.1',
+                        'port' => '11211',
+                      ],
+                      'redis' => [
+                        'host' => '127.0.0.1',
+                        'port' => 6379,
+                      ],
+                    ],
+                  ],
+                ];
+    </code></pre>
+</section>
+
+<section class="slide">
     <h2 style="margin-bottom: 0">Bitrix: Управляемый/Тегированный кеш</h2>
     <pre style="font-size: 11px"><code class="language-php">
                     use Bitrix\Main\Data\Cache;
@@ -312,20 +334,36 @@
 
 <section class="slide">
     <h2 style="margin-bottom: 0">Bitrix: Композитный кеш</h2>
-    <pre style="font-size: 12px"><code class="language-php" style="padding-top: 0">
+    <pre style="font-size: 12px"><code class="language-php">
                 // В .settings.php
                 'composite' => [
                     'enabled' => true,
                     'use_browser_cache' => true,
                     'auto_update' => true,
                 ],
+    </code></pre>
+    <p>Настройки -> Композитный сайт -> Настройка -> Автокомпозит / Композит</p>
+</section>
 
+<section class="slide">
+    <h2 style="margin-bottom: 0">Bitrix: Композитный кеш</h2>
+    <pre style="font-size: 11px"><code class="language-php" style="padding-top: 0px">
                 use Bitrix\Main\Composite\Page;
                 use Bitrix\Main\Context;
 
-                // Исключение блока из кеша
-                $frame = $this->createFrame()->begin();
-                    echo Context::getCurrent()->getUser()->getFullName();
+                // Создание динамической области
+                $frame = $this->createFrame("user_info", true)->begin();
+
+                // Содержимое, которое будет загружаться асинхронно
+                if (Context::getCurrent()->getUser()->isAuthorized()) {
+                    echo "Привет, " . Context::getCurrent()->getUser()->getFullName();
+                } else {
+                    echo "Привет, Гость!";
+                }
+
+                // Заглушка, которая отображается до загрузки контента
+                $frame->beginStub();
+                    echo "Загрузка...";
                 $frame->end();
 
                 // Очистка кеша
@@ -355,7 +393,25 @@
 </section>
 
 <section class="slide">
-    <h2 style="margin-bottom: 0">Bitrix: ORM кеш (D7)</h2>
+    <h2 style="margin-bottom: 0">Bitrix: Кеш компонентов</h2>
+    <video width="80%" class="place" autoplay loop muted playsinline>
+        <source src="pictures/component_cache.webm" type="video/webm">
+        Ваш браузер не поддерживает видео.
+    </video>
+</section>
+
+<section class="slide">
+    <h2 style="margin-bottom: 35px">Bitrix: Кеша компонента</h2>
+    <ul>
+        <li><strong>Component.php / Class.php</strong> (Основная логика компонента)</li>
+        <li class="next"><strong>template.php</strong> (Шаблон компонента)</li>
+        <li class="next"><strong>result_modifier.php</strong> (Слой между компонентом и шаблоном)</li>
+        <li class="next"><strong>component_epilog.php</strong> (Постобработка после рендеринга)</li>
+    </ul>
+</section>
+
+<section class="slide">
+    <h2 style="margin-bottom: 10px">Bitrix: ORM кеш (D7)</h2>
     <pre style="font-size: 14px"><code class="language-php">
                 use Bitrix\Iblock\ElementTable;
 
@@ -363,7 +419,7 @@
                     ->setSelect(['ID', 'NAME', 'IBLOCK_ID'])
                     ->where('IBLOCK_ID', 5)
                     ->where('ACTIVE', 'Y')
-                    ->setCacheTtl(3600) // ВОТ ТУТ УСТАНАВЛИВАЕТСЯ
+                    ->setCacheTtl(3600) // Вот тут устанавливается
                     ->cacheJoins(true)
                     ->fetchAll();
 
@@ -375,7 +431,7 @@
 <section class="slide">
     <h2 style="margin-bottom: 10px">Bitrix: Очистка кеша</h2>
     <div class="image-container">
-    <pre style="font-size: 12px"><code class="language-php">
+    <pre style="font-size: 12px"><code>
                 use Bitrix\Main\Data\Cache;
                 use Bitrix\Main\Application;
 
@@ -392,7 +448,7 @@
                     ->getTaggedCache()
                     ->clearByTag('iblock_id_2');
 </code></pre>
-        <pre style="font-size: 12px"><code class="language-php">
+        <pre style="font-size: 12px"><code>
                                     use Bitrix\Iblock\ElementTable;
                                     use Bitrix\Main\Composite\Page;
 
@@ -412,12 +468,15 @@
 </section>
 
 <section class="slide">
-    <h2>Bitrix: Очистка кеша</h2>
-    <img style="top: 57%" src="pictures/bitrix-cache-clear.png" width="70%" class="place"/>
+    <h2 style="margin-bottom: 0">Bitrix: Очистка кеша</h2>
+    <video width="80%" style="top: 58%" class="place" autoplay loop muted playsinline>
+        <source src="pictures/bx-cache-clear.webm" type="video/webm">
+        Ваш браузер не поддерживает видео.
+    </video>
 </section>
 
 <section class="slide">
-    <h2 style="margin-bottom: 10px">Bitrix: Идентификация кеша</h2>
+    <h2 style="margin-bottom: 10px">Идентификация Bitrix кеша</h2>
     <div class="diagnostic">
         <strong>Композитный кеш:</strong><br>
         • HTML комментарий: <code>&lt;!-- COMPOSITE_CACHE --&gt;</code><br>
@@ -577,31 +636,6 @@
 </section>
 
 <section class="slide">
-    <h2 style="margin-bottom: 0">Symfony: Конфигурация пулов</h2>
-    <pre style="font-size: 11px"><code class="language-yaml">
-                # config/packages/cache.yaml
-                framework:
-                    cache:
-                        app: cache.adapter.redis
-                        default_redis_provider: 'redis://localhost'
-
-                        pools:
-                            app.cache.products:
-                                adapter: cache.adapter.redis
-                                default_lifetime: 3600
-                                tags: true
-
-                            app.cache.sessions:
-                                adapter: cache.adapter.memcached
-                                provider: 'memcached://localhost'
-
-                            app.cache.expensive:
-                                adapter: cache.adapter.filesystem
-                                default_lifetime: 86400
-    </code></pre>
-</section>
-
-<section class="slide">
     <h2>Symfony: Стратегии очистки</h2>
     <div class="cache-clear">
         <strong>По пулам:</strong><br>
@@ -701,9 +735,7 @@
 
 <section class="slide">
     <h2>Full Route Cache</h2>
-    <pre><code class="language-js">            // layout.tsx или page.tsx
-            'use cache'
-
+    <pre><code class="language-js">
             export default async function Page() {
               const users = await fetch('/api/users').then(r => r.json())
               return <div>{users.map(u => <p key={u.id}>{u.name}</p>)}</div>
@@ -724,6 +756,20 @@
 </section>
 
 <section class="slide">
+    <h2>Next.js: Порядок проверки кешей</h2>
+    <p>При запросе страницы Next.js проверяет кэши в порядке:</p>
+    <ol>
+        <li><strong>Router Cache</strong> (клиент) → если HIT, страница из памяти</li>
+        <li><strong>Full Route Cache</strong> (сервер) → если HIT, HTML из билда</li>
+        <li><strong>Data Cache</strong> (сервер) → если HIT, данные из кэша fetch</li>
+        <li><strong>Request Memoization</strong> → дедупликация fetch в рендере</li>
+        <li><strong>Источник данных / Backend</strong> (БД/API) → если все MISS</li>
+    </ol>
+    <p class="note">Каждый уровень ускоряет последующие запросы.</p>
+</section>
+
+
+<section class="slide">
     <h2>Redis Cache</h2>
     <pre><code class="language-bash" style="font-size: 14px">                # Очистка всего кеша
                 redis-cli FLUSHALL
@@ -737,6 +783,12 @@
                 # Очистка по тегам (в приложении)
                 redis-cli DEL tag:users tag:products
     </code></pre>
+</section>
+
+<section class="slide">
+    <h2>Метрики</h2>
+    <img  src="pictures/metrics.jpg" width="92%" class="place"/>
+<!--    Тут картинка с метриками графаны от redis/varnish-->
 </section>
 
 <section class="slide">
@@ -764,7 +816,7 @@
 </section>
 
 <section class="slide">
-    <h2 style="margin-bottom: 30px">Типичное время отклика по уровням</h2>
+    <h2>Типичное время отклика по уровням</h2>
     <table class="grid">
         <thead>
         <tr>
@@ -787,7 +839,7 @@
         </tr>
         <tr>
             <td>In-memory (Redis, Memcached)</td>
-            <td>1-10 мс</td>
+            <td>1-5 мс</td>
         </tr>
         <tr>
             <td>Бэкенд (без кеша)</td>
@@ -795,7 +847,7 @@
         </tr>
         </tbody>
     </table>
-    <p style="font-size: 0.5em; margin-top: 1em;">
+    <p style="font-size: 0.6em; margin-top: 1em;">
         * Время указано для обработки на каждом уровне в изоляции. <br>
         Полное время запроса = время обработки + сетевые задержки (RTT) между всеми пройденными уровнями.<br>
         Например: пользователь → CDN edge (10-50 мс) + RTT до edge (20-150 мс в зависимости от региона).
@@ -807,24 +859,22 @@
 </section>
 
 <section class="slide">
-    <h2 style="margin-bottom: 10px">Cache-aside (Lazy Loading)</h2>
+    <h2>Cache-aside (Lazy Loading)</h2>
     <ul>
         <li>Приложение проверяет кеш</li>
         <li>При промахе — читает из источника</li>
         <li>Сохраняет в кеш</li>
     </ul>
-    <img style="top: 72%; left: 45%" src="pictures/cache-aside.png" width="70%" class="place"/>
     <!-- [Схема: приложение → кеш → БД] -->
 </section>
 
 <section class="slide">
-    <h2 style="margin-bottom: 10px">Read-through</h2>
+    <h2>Read-through</h2>
     <ul>
         <li>Приложение запрашивает данные</li>
         <li>Кеш сам читает из источника при промахе</li>
         <li>Кеш кэширует ответ</li>
     </ul>
-    <img style="top: 73%; left: 45%" src="pictures/read-through.png" width="70%" class="place"/>
     <!-- [Схема: приложение → кеш (→ БД)] -->
 </section>
 
