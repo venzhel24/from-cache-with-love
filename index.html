@@ -735,9 +735,7 @@
 
 <section class="slide">
     <h2>Full Route Cache</h2>
-    <pre><code class="language-js">            // layout.tsx или page.tsx
-            'use cache'
-
+    <pre><code class="language-js">
             export default async function Page() {
               const users = await fetch('/api/users').then(r => r.json())
               return <div>{users.map(u => <p key={u.id}>{u.name}</p>)}</div>
@@ -756,6 +754,20 @@
         }
     </code></pre>
 </section>
+
+<section class="slide">
+    <h2>Next.js: Порядок проверки кешей</h2>
+    <p>При запросе страницы Next.js проверяет кэши в порядке:</p>
+    <ol>
+        <li><strong>Router Cache</strong> (клиент) → если HIT, страница из памяти</li>
+        <li><strong>Full Route Cache</strong> (сервер) → если HIT, HTML из билда</li>
+        <li><strong>Data Cache</strong> (сервер) → если HIT, данные из кэша fetch</li>
+        <li><strong>Request Memoization</strong> → дедупликация fetch в рендере</li>
+        <li><strong>Источник данных / Backend</strong> (БД/API) → если все MISS</li>
+    </ol>
+    <p class="note">Каждый уровень ускоряет последующие запросы.</p>
+</section>
+
 
 <section class="slide">
     <h2>Redis Cache</h2>
