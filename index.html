@@ -273,6 +273,28 @@
 </section>
 
 <section class="slide">
+    <h2 style="margin-bottom: 0">Bitrix: Неуправляемый кеш</h2>
+    <!--    <pre style="font-size: 13px"><code class="language-php">-->
+    <!--                use Bitrix\Main\Data\Cache;-->
+
+    <!--                $cache = Cache::createInstance();-->
+    <!--                $cacheId = 'external_api_data';-->
+    <!--                $cacheDir = '/api/external/';-->
+
+    <!--                if ($cache->initCache(3600, $cacheId, $cacheDir)) {-->
+    <!--                    $result = $cache->getVars();-->
+    <!--                } elseif ($cache->startDataCache()) {-->
+    <!--                    $result = callExternalAPI();-->
+    <!--                    $cache->endDataCache($result);-->
+    <!--                }-->
+
+    <!--                // Ручная очистка-->
+    <!--                $cache->clean($cacheId, $cacheDir);-->
+    <!--    </code></pre>-->
+    <img style="top: 58%" src="pictures/svg/bx-simple-cache.svg" width="60%" class="place"/>
+</section>
+
+<section class="slide">
     <h2 style="margin-bottom: 0">Bitrix: Управляемый/Тегированный кеш</h2>
 <!--    <pre style="font-size: 11px"><code class="language-php">-->
 <!--                    use Bitrix\Main\Data\Cache;-->
@@ -294,29 +316,7 @@
 <!--                    // Инвалидация-->
 <!--                    $tagCache->clearByTag('category_electronics');-->
 <!--    </code></pre>-->
-    <img style="top: 55%" src="pictures/svg/bx-tag-cache.svg" width="40%" class="place"/>
-</section>
-
-<section class="slide">
-    <h2 style="margin-bottom: 0">Bitrix: Неуправляемый кеш</h2>
-<!--    <pre style="font-size: 13px"><code class="language-php">-->
-<!--                use Bitrix\Main\Data\Cache;-->
-
-<!--                $cache = Cache::createInstance();-->
-<!--                $cacheId = 'external_api_data';-->
-<!--                $cacheDir = '/api/external/';-->
-
-<!--                if ($cache->initCache(3600, $cacheId, $cacheDir)) {-->
-<!--                    $result = $cache->getVars();-->
-<!--                } elseif ($cache->startDataCache()) {-->
-<!--                    $result = callExternalAPI();-->
-<!--                    $cache->endDataCache($result);-->
-<!--                }-->
-
-<!--                // Ручная очистка-->
-<!--                $cache->clean($cacheId, $cacheDir);-->
-<!--    </code></pre>-->
-    <img style="top: 58%" src="pictures/svg/bx-simple-cache.svg" width="60%" class="place"/>
+    <img style="top: 58%" src="pictures/svg/bx-tag-cache.svg" width="46%" class="place"/>
 </section>
 
 <section class="slide">
