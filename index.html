@@ -81,21 +81,6 @@
 </section>
 
 <section class="slide">
-    <h2>DNS-кеш</h2>
-    <ul>
-        <li>Кеш IP-адресов</li>
-        <li>Локальный и облачный резолвер</li>
-        <li>Ускорение разрешения имён</li>
-    </ul>
-    <div class="cache-clear next">
-        <strong>Очистка DNS-кеша:</strong><br>
-        Windows: <code>ipconfig /flushdns</code><br>
-        macOS: <code>sudo killall -HUP mDNSResponder</code><br>
-        Linux: <code>sudo systemd-resolve --flush-caches</code>
-    </div>
-</section>
-
-<section class="slide">
     <h2>Цепочка кешей (Browser)</h2>
     <img src="pictures/level-browser.png" width="20%" class="place"/>
 </section>
@@ -103,14 +88,13 @@
 <section class="slide">
     <h2>Браузерный кеш</h2>
     <ul>
-        <li class="next">Кеширование ресурсов по HTTP:
+        <li>Кеширование ресурсов по HTTP:
             <ul>
-                <li class="next"><code>Cache-Control</code>: директивы для управления кешированием (max-age, no-cache, public, private).</li>
-                <li class="next"><code>ETag</code> / <code>Last-Modified</code>: валидация кеша для избежания повторной загрузки.</li>
+                <li><code>Cache-Control</code>: директивы для управления кешированием (max-age, no-cache, public, private).</li>
+                <li><code>ETag</code> / <code>Last-Modified</code> - <code>If-None-Match</code> / <code>If-Modified-Since</code>: валидация кеша для избежания повторной загрузки.</li>
             </ul>
         </li>
-        <li class="next">Хранилища на стороне клиента (localStorage, sessionStorage, IndexedDB)</li>
-        <li class="next">Программное кеширование через Service Workers (PWA)</li>
+        <li>Хранилища на стороне клиента (localStorage, sessionStorage, IndexedDB)</li>
     </ul>
 </section>
 
@@ -168,7 +152,7 @@
     <h2 style="margin-bottom: 10px">CDN</h2>
     <div class="diagnostic">
         <strong>Служебные заголовки:</strong><br>
-        • <code>X-Cache: HIT</code> / <code>MISS</code> / <code>BYPASS</code><br>
+        • <code>X-Cache: HIT</code> / <code>MISS</code><br>
         • <code>X-Cache-Status: HIT</code> (Cloudflare, Fastly)<br>
         • <code>CF-Cache-Status: HIT</code> (Cloudflare)<br>
         • <code>X-Served-By: cache-fra19121-FRA</code><br>
@@ -201,28 +185,28 @@
         <strong>Очистка Varnish-кеша:</strong><br>
         • <code>curl -X BAN http://site.com/page</code><br>
         • <code>varnishadm ban "req.url ~ /page"</code><br>
-        • Через telnet: <code>ban req.url ~ /page</code>
     </div>
 </section>
 
 <section class="slide">
     <h2 style="margin-bottom: 0;">Varnish</h2>
         <pre><code class="language-varnish" style="font-size: 14px">
-        sub vcl_backend_response {
-            if (beresp.ttl > 0s) {
-                set beresp.http.Cache-Control = "public, max-age=" + beresp.ttl;
-                unset beresp.http.Set-Cookie;
-                return (deliver);
-            }
-        }
+<!--        sub vcl_backend_response {-->
+<!--            if (beresp.ttl > 0s) {-->
+<!--                set beresp.http.Cache-Control = "public, max-age=" + beresp.ttl;-->
+<!--                unset beresp.http.Set-Cookie;-->
+<!--                return (deliver);-->
+<!--            }-->
+<!--        }-->
 
-        sub vcl_deliver {
-            if (obj.hits > 0) {
-                set resp.http.X-Cache = "HIT";
-            } else {
-                set resp.http.X-Cache = "MISS";
-            }
-        }
+<!--        sub vcl_deliver {-->
+<!--            if (obj.hits > 0) {-->
+<!--                set resp.http.X-Cache = "HIT";-->
+<!--            } else {-->
+<!--                set resp.http.X-Cache = "MISS";-->
+<!--            }-->
+<!--        }-->
+            <img style="top: 58%" src="pictures/svg/vcl.svg" width="60%" class="place"/>
         </code></pre>
 </section>
 
@@ -268,128 +252,112 @@
 <section class="slide">
     <h2 style="margin-bottom: 0">Bitrix: Хранение кеша</h2>
     <pre style="font-size: 12px;"><code class="language-php">
-                // .settings.php
-                return [
-                  'cache' => [
-                    'value' => [
-                      'type' => 'files', // files | memcache | redis
-                      'memcache' => [
-                        'host' => '127.0.0.1',
-                        'port' => '11211',
-                      ],
-                      'redis' => [
-                        'host' => '127.0.0.1',
-                        'port' => 6379,
-                      ],
-                    ],
-                  ],
-                ];
+<!--                // .settings.php-->
+<!--                return [-->
+<!--                  'cache' => [-->
+<!--                    'value' => [-->
+<!--                      'type' => 'files', // files | memcache | redis-->
+<!--                      'memcache' => [-->
+<!--                        'host' => '127.0.0.1',-->
+<!--                        'port' => '11211',-->
+<!--                      ],-->
+<!--                      'redis' => [-->
+<!--                        'host' => '127.0.0.1',-->
+<!--                        'port' => 6379,-->
+<!--                      ],-->
+<!--                    ],-->
+<!--                  ],-->
+<!--                ];-->
     </code></pre>
+    <img style="top: 55%" src="pictures/svg/bitrix-saveing.svg" width="40%" class="place"/>
 </section>
 
 <section class="slide">
     <h2 style="margin-bottom: 0">Bitrix: Управляемый/Тегированный кеш</h2>
-    <pre style="font-size: 11px"><code class="language-php">
-                    use Bitrix\Main\Data\Cache;
-                    use Bitrix\Main\Application;
+<!--    <pre style="font-size: 11px"><code class="language-php">-->
+<!--                    use Bitrix\Main\Data\Cache;-->
+<!--                    use Bitrix\Main\Application;-->
 
-                    $cache = Cache::createInstance();
-                    $tagCache = Application::getInstance()->getTaggedCache();
+<!--                    $cache = Cache::createInstance();-->
+<!--                    $tagCache = Application::getInstance()->getTaggedCache();-->
 
-                    if ($cache->startDataCache(3600, 'products_5', '/products/')) {
-                        $tagCache->startTagCache('/products/');
-                        $tagCache->registerTag('iblock_id_5');
-                        $tagCache->registerTag('category_electronics');
-                        $tagCache->endTagCache();
+<!--                    if ($cache->startDataCache(3600, 'products_5', '/products/')) {-->
+<!--                        $tagCache->startTagCache('/products/');-->
+<!--                        $tagCache->registerTag('iblock_id_5');-->
+<!--                        $tagCache->registerTag('category_electronics');-->
+<!--                        $tagCache->endTagCache();-->
 
-                        $items = getProducts(5);
-                        $cache->endDataCache($items);
-                    }
+<!--                        $items = getProducts(5);-->
+<!--                        $cache->endDataCache($items);-->
+<!--                    }-->
 
-                    // Инвалидация
-                    $tagCache->clearByTag('category_electronics');
-    </code></pre>
+<!--                    // Инвалидация-->
+<!--                    $tagCache->clearByTag('category_electronics');-->
+<!--    </code></pre>-->
+    <img style="top: 55%" src="pictures/svg/bx-tag-cache.svg" width="40%" class="place"/>
 </section>
 
 <section class="slide">
     <h2 style="margin-bottom: 0">Bitrix: Неуправляемый кеш</h2>
-    <pre style="font-size: 13px"><code class="language-php">
-                use Bitrix\Main\Data\Cache;
+<!--    <pre style="font-size: 13px"><code class="language-php">-->
+<!--                use Bitrix\Main\Data\Cache;-->
 
-                $cache = Cache::createInstance();
-                $cacheId = 'external_api_data';
-                $cacheDir = '/api/external/';
+<!--                $cache = Cache::createInstance();-->
+<!--                $cacheId = 'external_api_data';-->
+<!--                $cacheDir = '/api/external/';-->
 
-                if ($cache->initCache(3600, $cacheId, $cacheDir)) {
-                    $result = $cache->getVars();
-                } elseif ($cache->startDataCache()) {
-                    $result = callExternalAPI();
-                    $cache->endDataCache($result);
-                }
+<!--                if ($cache->initCache(3600, $cacheId, $cacheDir)) {-->
+<!--                    $result = $cache->getVars();-->
+<!--                } elseif ($cache->startDataCache()) {-->
+<!--                    $result = callExternalAPI();-->
+<!--                    $cache->endDataCache($result);-->
+<!--                }-->
 
-                // Ручная очистка
-                $cache->clean($cacheId, $cacheDir);
-    </code></pre>
+<!--                // Ручная очистка-->
+<!--                $cache->clean($cacheId, $cacheDir);-->
+<!--    </code></pre>-->
+    <img style="top: 58%" src="pictures/svg/bx-simple-cache.svg" width="60%" class="place"/>
 </section>
 
 <section class="slide">
-    <h2 style="margin-bottom: 0">Bitrix: Композитный кеш</h2>
-    <pre style="font-size: 12px"><code class="language-php">
-                // В .settings.php
-                'composite' => [
-                    'enabled' => true,
-                    'use_browser_cache' => true,
-                    'auto_update' => true,
-                ],
-    </code></pre>
+    <h2 style="margin-bottom: 30px">Bitrix: Композитный кеш</h2>
+<!--    <pre style="font-size: 12px"><code class="language-php">-->
+<!--                // В .settings.php-->
+<!--                'composite' => [-->
+<!--                    'enabled' => true,-->
+<!--                    'use_browser_cache' => true,-->
+<!--                    'auto_update' => true,-->
+<!--                ],-->
+<!--    </code></pre>-->
+    <img src="pictures/svg/bx-composite-settings.svg" width="50%" class="place"/>
     <p>Настройки -> Композитный сайт -> Настройка -> Автокомпозит / Композит</p>
 </section>
 
 <section class="slide">
     <h2 style="margin-bottom: 0">Bitrix: Композитный кеш</h2>
-    <pre style="font-size: 11px"><code class="language-php" style="padding-top: 0px">
-                use Bitrix\Main\Composite\Page;
-                use Bitrix\Main\Context;
+<!--    <pre style="font-size: 11px"><code class="language-php" style="padding-top: 0px">-->
+<!--                use Bitrix\Main\Composite\Page;-->
+<!--                use Bitrix\Main\Context;-->
 
-                // Создание динамической области
-                $frame = $this->createFrame("user_info", true)->begin();
+<!--                // Создание динамической области-->
+<!--                $frame = $this->createFrame("user_info", true)->begin();-->
 
-                // Содержимое, которое будет загружаться асинхронно
-                if (Context::getCurrent()->getUser()->isAuthorized()) {
-                    echo "Привет, " . Context::getCurrent()->getUser()->getFullName();
-                } else {
-                    echo "Привет, Гость!";
-                }
+<!--                // Содержимое, которое будет загружаться асинхронно-->
+<!--                if (Context::getCurrent()->getUser()->isAuthorized()) {-->
+<!--                    echo "Привет, " . Context::getCurrent()->getUser()->getFullName();-->
+<!--                } else {-->
+<!--                    echo "Привет, Гость!";-->
+<!--                }-->
 
-                // Заглушка, которая отображается до загрузки контента
-                $frame->beginStub();
-                    echo "Загрузка...";
-                $frame->end();
+<!--                // Заглушка, которая отображается до загрузки контента-->
+<!--                $frame->beginStub();-->
+<!--                    echo "Загрузка...";-->
+<!--                $frame->end();-->
 
-                // Очистка кеша
-                Page::getInstance()->deleteAll();
-    </code></pre>
-</section>
-
-<section class="slide">
-    <h2 style="margin-bottom: 0">Bitrix: Кеш компонентов</h2>
-    <pre style="font-size: 13px"><code class="language-php">
-                use Bitrix\Main\Application;
-
-                Application::getInstance()->getIncludeAreaComponent(
-                    "bitrix:news.list",
-                    "template_name",
-                    [
-                        "IBLOCK_ID" => 1,
-                        "CACHE_TYPE" => "A",        // N, Y, A (авто)
-                        "CACHE_TIME" => 3600,
-                        "CACHE_GROUPS" => "Y",
-                    ]
-                );
-
-                // Очистка кеша компонента
-                \CBitrixComponent::clearComponentCache("bitrix:news.list");
-    </code></pre>
+<!--                // Очистка кеша-->
+<!--                Page::getInstance()->deleteAll();-->
+<!--    </code></pre>-->
+    <img style="top: 57%" src="pictures/svg/bx-composite-cache.svg" width="55%" class="place"/>
 </section>
 
 <section class="slide">
@@ -401,7 +369,29 @@
 </section>
 
 <section class="slide">
-    <h2 style="margin-bottom: 35px">Bitrix: Кеша компонента</h2>
+    <h2 style="margin-bottom: 0">Bitrix: Кеш компонентов</h2>
+<!--    <pre style="font-size: 13px"><code class="language-php">-->
+<!--                use Bitrix\Main\Application;-->
+
+<!--                Application::getInstance()->getIncludeAreaComponent(-->
+<!--                    "bitrix:news.list",-->
+<!--                    "template_name",-->
+<!--                    [-->
+<!--                        "IBLOCK_ID" => 1,-->
+<!--                        "CACHE_TYPE" => "A",        // N, Y, A (авто)-->
+<!--                        "CACHE_TIME" => 3600,-->
+<!--                        "CACHE_GROUPS" => "Y",-->
+<!--                    ]-->
+<!--                );-->
+
+<!--                // Очистка кеша компонента-->
+<!--                \CBitrixComponent::clearComponentCache("bitrix:news.list");-->
+<!--    </code></pre>-->
+    <img style="top: 57%" src="pictures/svg/bx-component-cache.svg" width="60%" class="place"/>
+</section>
+
+<section class="slide">
+    <h2 style="margin-bottom: 35px">Bitrix: структура компонента</h2>
     <ul>
         <li><strong>Component.php / Class.php</strong> (Основная логика компонента)</li>
         <li class="next"><strong>template.php</strong> (Шаблон компонента)</li>
@@ -412,59 +402,21 @@
 
 <section class="slide">
     <h2 style="margin-bottom: 10px">Bitrix: ORM кеш (D7)</h2>
-    <pre style="font-size: 14px"><code class="language-php">
-                use Bitrix\Iblock\ElementTable;
+    <img style="top: 57%" src="pictures/svg/bx-orm-cache.svg" width="65%" class="place"/>
+<!--    <pre style="font-size: 14px"><code class="language-php">-->
+<!--                use Bitrix\Iblock\ElementTable;-->
 
-                $items = ElementTable::query()
-                    ->setSelect(['ID', 'NAME', 'IBLOCK_ID'])
-                    ->where('IBLOCK_ID', 5)
-                    ->where('ACTIVE', 'Y')
-                    ->setCacheTtl(3600) // Вот тут устанавливается
-                    ->cacheJoins(true)
-                    ->fetchAll();
+<!--                $items = ElementTable::query()-->
+<!--                    ->setSelect(['ID', 'NAME', 'IBLOCK_ID'])-->
+<!--                    ->where('IBLOCK_ID', 5)-->
+<!--                    ->where('ACTIVE', 'Y')-->
+<!--                    ->setCacheTtl(3600) // Вот тут устанавливается-->
+<!--                    ->cacheJoins(true)-->
+<!--                    ->fetchAll();-->
 
-                // Автоматическая очистка при обновлении
-                ElementTable::getEntity()->cleanCache();
-    </code></pre>
-</section>
-
-<section class="slide">
-    <h2 style="margin-bottom: 10px">Bitrix: Очистка кеша</h2>
-    <div class="image-container">
-    <pre style="font-size: 12px"><code>
-                use Bitrix\Main\Data\Cache;
-                use Bitrix\Main\Application;
-
-                // По ключу
-                Cache::createInstance()
-                    ->clean($cacheId, $dir);
-
-                // По директории
-                Cache::createInstance()
-                    ->cleanDir($dir);
-
-                // По тегу
-                Application::getInstance()
-                    ->getTaggedCache()
-                    ->clearByTag('iblock_id_2');
-</code></pre>
-        <pre style="font-size: 12px"><code>
-                                    use Bitrix\Iblock\ElementTable;
-                                    use Bitrix\Main\Composite\Page;
-
-                                    // Для ORM сущности
-                                    ElementTable::getEntity()
-                                        ->cleanCache();
-
-                                    // Композитный кеш
-                                    Page::getInstance()
-                                        ->deleteAll();
-
-                                    // Html кеш страницы
-                                    Page::getInstance()
-                                        ->delete('/catalog/item/123/');
-</code></pre>
-    </div>
+<!--                // Автоматическая очистка при обновлении-->
+<!--                ElementTable::getEntity()->cleanCache();-->
+<!--    </code></pre>-->
 </section>
 
 <section class="slide">
@@ -473,6 +425,46 @@
         <source src="pictures/bx-cache-clear.webm" type="video/webm">
         Ваш браузер не поддерживает видео.
     </video>
+</section>
+
+<section class="slide">
+    <h2 style="margin-bottom: 10px">Bitrix: Очистка кеша</h2>
+    <img style="top: 57%" src="pictures/svg/bx-clean-cache-1.svg" width="47%" class="place"/>
+<!--    <div class="image-container">-->
+<!--    <pre style="font-size: 12px"><code>-->
+<!--                use Bitrix\Main\Data\Cache;-->
+<!--                use Bitrix\Main\Application;-->
+
+<!--                // По ключу-->
+<!--                Cache::createInstance()-->
+<!--                    ->clean($cacheId, $dir);-->
+
+<!--                // По директории-->
+<!--                Cache::createInstance()-->
+<!--                    ->cleanDir($dir);-->
+
+<!--                // По тегу-->
+<!--                Application::getInstance()-->
+<!--                    ->getTaggedCache()-->
+<!--                    ->clearByTag('iblock_id_2');-->
+<!--</code></pre>-->
+<!--        <pre style="font-size: 12px"><code>-->
+<!--                                    use Bitrix\Iblock\ElementTable;-->
+<!--                                    use Bitrix\Main\Composite\Page;-->
+
+<!--                                    // Для ORM сущности-->
+<!--                                    ElementTable::getEntity()-->
+<!--                                        ->cleanCache();-->
+
+<!--                                    // Композитный кеш-->
+<!--                                    Page::getInstance()-->
+<!--                                        ->deleteAll();-->
+
+<!--                                    // Html кеш страницы-->
+<!--                                    Page::getInstance()-->
+<!--                                        ->delete('/catalog/item/123/');-->
+<!--</code></pre>-->
+<!--    </div>-->
 </section>
 
 <section class="slide">
@@ -524,119 +516,124 @@
 
 <section class="slide">
     <h2 style="margin-bottom: 0">Symfony: HTTP кеш</h2>
-    <pre style="font-size: 12px"><code class="language-php">
-                use Symfony\Component\HttpFoundation\Response;
+    <img style="top: 57%" src="pictures/svg/symf-http-cache.svg" width="55%" class="place"/>
+<!--    <pre style="font-size: 12px"><code class="language-php">-->
+<!--                use Symfony\Component\HttpFoundation\Response;-->
 
-                public function index(): Response
-                {
-                    $response = $this->render('page/index.html.twig');
+<!--                public function index(): Response-->
+<!--                {-->
+<!--                    $response = $this->render('page/index.html.twig');-->
 
-                    // Public cache с max-age
-                    $response->setPublic();
-                    $response->setMaxAge(3600);
-                    $response->setSharedMaxAge(3600);
+<!--                    // Public cache с max-age-->
+<!--                    $response->setPublic();-->
+<!--                    $response->setMaxAge(3600);-->
+<!--                    $response->setSharedMaxAge(3600);-->
 
-                    // ETag для валидации
-                    $response->setETag(md5($response->getContent()));
+<!--                    // ETag для валидации-->
+<!--                    $response->setETag(md5($response->getContent()));-->
 
-                    return $response;
-                }
-    </code></pre>
+<!--                    return $response;-->
+<!--                }-->
+<!--    </code></pre>-->
 </section>
 
 <section class="slide">
     <h2 style="margin-bottom: 0">Symfony: Cache Pools</h2>
-    <pre style="font-size: 12px"><code class="language-php">
-                use Symfony\Contracts\Cache\CacheInterface;
-                use Symfony\Contracts\Cache\ItemInterface;
+    <img style="top: 57%" src="pictures/svg/symf-cache-pools.svg" width="75%" class="place"/>
+<!--    <pre style="font-size: 12px"><code class="language-php">-->
+<!--                use Symfony\Contracts\Cache\CacheInterface;-->
+<!--                use Symfony\Contracts\Cache\ItemInterface;-->
 
-                public function __construct(private CacheInterface $cache) {}
+<!--                public function __construct(private CacheInterface $cache) {}-->
 
-                public function getProducts(): array
-                {
-                    return $this->cache->get('products_list', function (ItemInterface $item) {
-                        $item->expiresAfter(3600); // TTL 1 час
+<!--                public function getProducts(): array-->
+<!--                {-->
+<!--                    return $this->cache->get('products_list', function (ItemInterface $item) {-->
+<!--                        $item->expiresAfter(3600); // TTL 1 час-->
 
-                        return $this->productRepository->findAll();
-                    });
-                }
+<!--                        return $this->productRepository->findAll();-->
+<!--                    });-->
+<!--                }-->
 
-                // Очистка пула
-                $this->cache->delete('products_list');
-    </code></pre>
+<!--                // Очистка пула-->
+<!--                $this->cache->delete('products_list');-->
+<!--    </code></pre>-->
 </section>
 
 <section class="slide">
     <h2 style="margin-bottom: 0">Symfony: Tag-aware Cache</h2>
-    <pre style="font-size: 12px"><code class="language-php">
-                use Symfony\Contracts\Cache\TagAwareCacheInterface;
+<!--    <pre style="font-size: 12px"><code class="language-php">-->
+<!--                use Symfony\Contracts\Cache\TagAwareCacheInterface;-->
 
-                public function __construct(
-                    private TagAwareCacheInterface $cache
-                ) {}
+<!--                public function __construct(-->
+<!--                    private TagAwareCacheInterface $cache-->
+<!--                ) {}-->
 
-                public function getProductsByCategory(int $categoryId): array
-                {
-                    return $this->cache->get("products_cat_{$categoryId}",
-                        function (ItemInterface $item) use ($categoryId) {
-                            $item->tag(['products', "category_{$categoryId}"]);
-                            $item->expiresAfter(3600);
+<!--                public function getProductsByCategory(int $categoryId): array-->
+<!--                {-->
+<!--                    return $this->cache->get("products_cat_{$categoryId}",-->
+<!--                        function (ItemInterface $item) use ($categoryId) {-->
+<!--                            $item->tag(['products', "category_{$categoryId}"]);-->
+<!--                            $item->expiresAfter(3600);-->
 
-                            return $this->productRepository->findByCategory($categoryId);
-                        }
-                    );
-                }
+<!--                            return $this->productRepository->findByCategory($categoryId);-->
+<!--                        }-->
+<!--                    );-->
+<!--                }-->
 
-                // Инвалидация всех продуктов категории
-                $this->cache->invalidateTags(['category_5']);
-    </code></pre>
+<!--                // Инвалидация всех продуктов категории-->
+<!--                $this->cache->invalidateTags(['category_5']);-->
+<!--    </code></pre>-->
+    <img style="top: 57%" src="pictures/svg/symf-tag-cache.svg" width="60%" class="place"/>
 </section>
 
 <section class="slide">
     <h2 style="margin-bottom: 0">Symfony: Doctrine кеш</h2>
-    <pre style="font-size: 14px"><code class="language-php">
-                // Result Cache
-                $query = $em->createQuery('SELECT p FROM App\Entity\Product p');
-                $query->enableResultCache(3600, 'products_all');
-                $products = $query->getResult();
+<!--    <pre style="font-size: 14px"><code class="language-php">-->
+<!--                // Result Cache-->
+<!--                $query = $em->createQuery('SELECT p FROM App\Entity\Product p');-->
+<!--                $query->enableResultCache(3600, 'products_all');-->
+<!--                $products = $query->getResult();-->
 
-                // Second Level Cache (L2)
-                // config/packages/doctrine.yaml
-                doctrine:
-                  orm:
-                    second_level_cache:
-                      enabled: true
-                      region_cache_driver:
-                        type: redis
-                        id: 'doctrine.cache.redis'
-    </code></pre>
+<!--                // Second Level Cache (L2)-->
+<!--                // config/packages/doctrine.yaml-->
+<!--                doctrine:-->
+<!--                  orm:-->
+<!--                    second_level_cache:-->
+<!--                      enabled: true-->
+<!--                      region_cache_driver:-->
+<!--                        type: redis-->
+<!--                        id: 'doctrine.cache.redis'-->
+<!--    </code></pre>-->
+    <img style="top: 57%" src="pictures/svg/doctrine-cache.svg" width="70%" class="place"/>
 </section>
 
 <section class="slide">
     <h2 style="margin-bottom: 0">Symfony: Doctrine L2 Cache</h2>
-    <pre style="font-size: 12px"><code class="language-php">
-                use Doctrine\ORM\Mapping as ORM;
+<!--    <pre style="font-size: 12px"><code class="language-php">-->
+<!--                use Doctrine\ORM\Mapping as ORM;-->
 
-                #[ORM\Entity]
-                #[ORM\Cache(usage: "READ_ONLY", region: "products")]
-                class Product
-                {
-                    #[ORM\Id]
-                    #[ORM\Column(type: "integer")]
-                    private int $id;
+<!--                #[ORM\Entity]-->
+<!--                #[ORM\Cache(usage: "READ_ONLY", region: "products")]-->
+<!--                class Product-->
+<!--                {-->
+<!--                    #[ORM\Id]-->
+<!--                    #[ORM\Column(type: "integer")]-->
+<!--                    private int $id;-->
 
-                    #[ORM\Column(type: "string")]
-                    private string $name;
-                }
+<!--                    #[ORM\Column(type: "string")]-->
+<!--                    private string $name;-->
+<!--                }-->
 
-                // Очистка L2 Cache
-                $cacheDriver = $em->getConfiguration()->getResultCacheImpl();
-                $cacheDriver->deleteAll();
-    </code></pre>
+<!--                // Очистка L2 Cache-->
+<!--                $cacheDriver = $em->getConfiguration()->getResultCacheImpl();-->
+<!--                $cacheDriver->deleteAll();-->
+<!--    </code></pre>-->
+    <img style="top: 57%" src="pictures/svg/doctrine-l2-cache.svg" width="62%" class="place"/>
 </section>
 
 <section class="slide">
-    <h2>Symfony: Стратегии очистки</h2>
+    <h2>Symfony: Очистка кеша</h2>
     <div class="cache-clear">
         <strong>По пулам:</strong><br>
         <code>php bin/console cache:pool:clear app.cache.products</code><br>
@@ -647,8 +644,7 @@
 
         <strong>Doctrine:</strong><br>
         <code>php bin/console doctrine:cache:clear-query</code><br>
-        <code>php bin/console doctrine:cache:clear-result</code><br>
-        <code>php bin/console doctrine:cache:clear-metadata</code>
+        <code>php bin/console doctrine:cache:clear-result</code>
     </div>
 </section>
 
@@ -680,79 +676,84 @@
         <li>Full Route Cache</li>
         <li>Router Cache</li>
     </ul>
-    <div class="cache-clear">
-        <strong>Очистка кеша Next.js:</strong><br>
-        • <code>revalidateTag('users')</code><br>
-        • <code>revalidatePath('/dashboard')</code><br>
-        • <code>router.refresh()</code> (клиент)
-    </div>
+<!--    <div class="cache-clear">-->
+<!--        <strong>Очистка кеша Next.js:</strong><br>-->
+<!--        • <code>revalidateTag('users')</code><br>-->
+<!--        • <code>revalidatePath('/dashboard')</code><br>-->
+<!--        • <code>router.refresh()</code> (клиент)-->
+<!--    </div>-->
 </section>
 
 <section class="slide">
     <h2>Request Memoization</h2>
-    <pre><code class="language-js">        async function getData() {
-          const res = await fetch('https://api.example.com/data')
-          return res.json()
-        }
+<!--    <pre><code class="language-js">        async function getData() {-->
+<!--          const res = await fetch('https://api.example.com/data')-->
+<!--          return res.json()-->
+<!--        }-->
 
-        // В одном рендере:
-        const data1 = await getData() // запрос отправляется
-        const data2 = await getData() // берётся из кеша (HIT)
-    </code></pre>
+<!--        // В одном рендере:-->
+<!--        const data1 = await getData() // запрос отправляется-->
+<!--        const data2 = await getData() // берётся из кеша (HIT)-->
+<!--    </code></pre>-->
+    <img style="top: 57%" src="pictures/svg/request-mem.svg" width="65%" class="place"/>
 </section>
 
 <section class="slide">
     <h2>Data Cache</h2>
-    <pre><code class="language-js">            // Кешировать ответ (по умолчанию в Next.js 14)
-            fetch('https://...', { cache: 'force-cache' })
+<!--    <pre><code class="language-js">            // Кешировать ответ (по умолчанию в Next.js 14)-->
+<!--            fetch('https://...', { cache: 'force-cache' })-->
 
-            // Не кешировать (по умолчанию в Next.js 15)
-            fetch('https://...', { cache: 'no-store' })
+<!--            // Не кешировать (по умолчанию в Next.js 15)-->
+<!--            fetch('https://...', { cache: 'no-store' })-->
 
-            // Кешировать с ревалидацией каждые 60 секунд
-            fetch('https://...', { next: { revalidate: 60 } })
+<!--            // Кешировать с ревалидацией каждые 60 секунд-->
+<!--            fetch('https://...', { next: { revalidate: 60 } })-->
 
-            // С тегами для групповой инвалидации
-            fetch('https://...', { next: { tags: ['users'] } })
-    </code></pre>
+<!--            // С тегами для групповой инвалидации-->
+<!--            fetch('https://...', { next: { tags: ['users'] } })-->
+<!--    </code></pre>-->
+    <img style="top: 57%" src="pictures/svg/data-cache.svg" width="75%" class="place"/>
 </section>
 
 <section class="slide">
     <h2>Next.js Cache Invalidation</h2>
-    <pre><code class="language-js">        import { revalidateTag, revalidatePath } from 'next/cache'
+<!--    <pre><code class="language-js">        import { revalidateTag, revalidatePath } from 'next/cache'-->
 
-        revalidateTag('users')
-        revalidatePath('/dashboard')
+<!--        revalidateTag('users')-->
+<!--        revalidatePath('/dashboard')-->
 
-        // API Route пример
-        export async function POST() {
-            await updateUser()
-            revalidateTag('users')
-            return Response.json({ success: true })
-        }
-    </code></pre>
+<!--        // API Route пример-->
+<!--        export async function POST() {-->
+<!--            await updateUser()-->
+<!--            revalidateTag('users')-->
+<!--            return Response.json({ success: true })-->
+<!--        }-->
+<!--    </code></pre>-->
+    <img style="top: 57%" src="pictures/svg/next-invalid.svg" width="75%" class="place"/>
 </section>
 
 <section class="slide">
     <h2>Full Route Cache</h2>
-    <pre><code class="language-js">
-            export default async function Page() {
-              const users = await fetch('/api/users').then(r => r.json())
-              return <div>{users.map(u => <p key={u.id}>{u.name}</p>)}</div>
-            }
-    </code></pre>
+<!--    <pre><code class="language-js">-->
+<!--            export default async function Page() {-->
+<!--              const users = await fetch('/api/users').then(r => r.json())-->
+<!--              return <div>{users.map(u => <p key={u.id}>{u.name}</p>)}</div>-->
+<!--            }-->
+<!--    </code></pre>-->
+    <img style="top: 57%" src="pictures/svg/full-route-cache.svg" width="80%" class="place"/>
 </section>
 
 <section class="slide">
     <h2>Router cache</h2>
-    <pre><code>        'use client'
-        import { useRouter } from 'next/navigation'
+<!--    <pre><code>        'use client'-->
+<!--        import { useRouter } from 'next/navigation'-->
 
-        export function RefreshButton() {
-            const router = useRouter()
-            return &lt;button onClick={() => router.refresh()}&gt;Обновить&lt;/button&gt;
-        }
-    </code></pre>
+<!--        export function RefreshButton() {-->
+<!--            const router = useRouter()-->
+<!--            return &lt;button onClick={() => router.refresh()}&gt;Обновить&lt;/button&gt;-->
+<!--        }-->
+<!--    </code></pre>-->
+    <img style="top: 57%" src="pictures/svg/full-route-cache.svg" width="80%" class="place"/>
 </section>
 
 <section class="slide">
@@ -787,7 +788,7 @@
 
 <section class="slide">
     <h2>Метрики</h2>
-    <img  src="pictures/metrics.jpg" width="92%" class="place"/>
+    <img  src="pictures/metrics2.png" width="92%" class="place"/>
 <!--    Тут картинка с метриками графаны от redis/varnish-->
 </section>
 
